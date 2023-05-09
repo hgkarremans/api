@@ -106,7 +106,7 @@ const userController = {
     logger.info('Find user');
     logger.debug('Id=', id);
 
-    let sqlStatement = "Select * FROM user WHERE id = " + id;
+    let sqlStatement = "SELECT * FROM user WHERE id = " + id;
 
     pool.getConnection(function (err, conn) {
       // Do something with the connection
