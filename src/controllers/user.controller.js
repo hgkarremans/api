@@ -133,7 +133,7 @@ const userController = {
             message: 'User not found',
             data: id
           })
-          connection.release();      
+          connection.release();
         }
       });
     });
@@ -146,34 +146,37 @@ const userController = {
     logger.info('Update user');
     logger.debug('User=', user);
 
-    let sqlStatement = "UPDATE user SET firstName = '" + user.firstName + "', lastName = '" + user.lastName + "', emailAdress = '" + user.emailAdress + "' WHERE id = " + user.id;
+    const checkUserSql = 'SELECT * FROM user WHERE id = ?';
+    const sqlStatement = "UPDATE user SET firstName = '" + user.firstName + "', lastName = '" + user.lastName + "', emailAdress = '" + user.emailAdress + "' WHERE id = " + user.id;
 
-    pool.getConnection(function (err, conn) {
-      // Do something with the connection
-      if (err) {
-        console.log('error', err);
-        next('error: ' + err.message);
-      }
-      if (conn) {
-        conn.query(sqlStatement, function (err, results, fields) {
-          if (err) {
-            logger.err(err.message);
-            next({
-              code: 400,
-              message: err.message
-            });
-          }
-          if (results) {
-            logger.info('Updated', results.length, 'user');
+    pool.getConnection((err, connection) => {
+      if (err) throw err;
+      connection.query(checkUserSql, [user.id], (err, results) => {
+        if (err) throw err;
+        if (results.length > 0) {
+          connection.query(sqlStatement, [user.firstName, user.lastName, user.email, user.id], (err, results) => {
+            if (err) throw err;
+            console.log(`User with ID ${user.id} updated successfully`);
             res.status(200).json({
               statusCode: 200,
               message: 'User update endpoint',
               data: user
             });
-          }
-        });
-        pool.releaseConnection(conn);
-      }
+            connection.release();
+          });
+        } else {
+          // user does not exist, return an error
+          const error = new Error(`User with ID ${user.id} not found`);
+          console.error(error);
+          res.status(404).json({
+            statusCode: 404,
+            message: 'User not found',
+            data: user
+          });
+          connection.release();
+          throw error;
+        }
+      });
     });
   },
   deleteUser: (req, res) => {
@@ -182,34 +185,37 @@ const userController = {
     logger.info('Delete user');
     logger.debug('Id=', id);
 
+    const checkUserSql = 'SELECT * FROM users WHERE id = ?';
     let sqlStatement = "DELETE FROM user WHERE id = " + id;
 
-    pool.getConnection(function (err, conn) {
-      // Do something with the connection
-      if (err) {
-        console.log('error', err);
-        next('error: ' + err.message);
-      }
-      if (conn) {
-        conn.query(sqlStatement, function (err, results, fields) {
-          if (err) {
-            logger.err(err.message);
-            next({
-              code: 400,
-              message: err.message
-            });
-          }
-          if (results) {
-            logger.info('Deleted user');
+    pool.getConnection((err, connection) => {
+      if (err) throw err;
+      connection.query(checkUserSql, [id], (err, results) => {
+        if (err) throw err;
+        if (results.length > 0) {
+          connection.query(sqlStatement, [id], (err, results) => {
+            if (err) throw err;
+            console.log(`User with ID ${id} deleted successfully`);
+
             res.status(200).json({
               statusCode: 200,
               message: 'User delete endpoint',
-              data: results
+              data: id
             });
-          }
-        });
-        pool.releaseConnection(conn);
-      }
+            connection.release();
+          });
+        } else {
+          const error = new Error(`User with ID ${id} not found`);
+          console.error(error);
+          res.status(404).json({
+            statusCode: 404,
+            message: 'User not found',
+            data: id
+          });
+          connection.release();
+          throw error;
+        }
+      });
     });
   }
 };
