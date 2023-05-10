@@ -14,10 +14,11 @@ const userController = {
     //validate incoming user info
     try {
       assert(typeof user.firstName === 'string', 'firstName must be a string');
-      assert(
-        typeof user.emailAdress === 'string',
-        'emailAdress must be a string'
-      );
+      // assert(
+      //   typeof user.emailAddress === 'string',
+      //   'emailAdress must be a string'
+      // );
+      // assert(typeof user.lastName === 'string', 'lastName must be a string');
     } catch (err) {
       res.status(400).json({
         status: 400,
@@ -28,33 +29,35 @@ const userController = {
     }
 
     let sqlStatement = "INSERT INTO user (firstName, lastName, emailAdress) VALUES ('" + user.firstName + "', '" + user.lastName + "', '" + user.emailAdress + "')";
+    const checkEmailSql = 'SELECT COUNT(*) AS count FROM user WHERE emailAdress = ?'
 
-    pool.getConnection(function (err, conn) {
-      // Do something with the connection
-      if (err) {
-        console.log('error', err);
-        next('error: ' + err.message);
-      }
-      if (conn) {
-        conn.query(sqlStatement, function (err, results, fields) {
-          if (err) {
-            logger.err(err.message);
-            next({
-              code: 400,
-              message: err.message
-            });
-          }
-          if (results) {
-            logger.info('Inserted', results.length, 'user');
+
+    pool.getConnection((err, connection) => {
+      if (err) throw err;
+
+      // execute the check email SQL statement
+      connection.query(checkEmailSql, [user.emailAdress], (err, results) => {
+        if (err) throw err;
+        const count = results[0].count;
+        if (count === 0) {
+          connection.query(sqlStatement, [user.emailAdress], (err, results) => {
+            if (err) throw err;
             res.status(200).json({
               statusCode: 200,
               message: 'User register endpoint',
               data: user
             });
-          }
-        });
-        pool.releaseConnection(conn);
-      }
+          });
+        } else {
+          console.log(`Email ${user.emailAdress} already exists`);
+          res.status(400).json({
+            statusCode: 400,
+            message: 'Email already exists',
+            data: user
+          });
+        }
+        connection.release();
+      });
     });
   },
 
@@ -95,7 +98,7 @@ const userController = {
   },
 
   //uc 203
-  // nog niet af
+  // functie nog niet gerealiseerd
 
 
 
@@ -105,35 +108,34 @@ const userController = {
 
     logger.info('Find user');
     logger.debug('Id=', id);
+    const checkUserSql = 'SELECT * FROM user WHERE id = ?';
 
-    let sqlStatement = "SELECT * FROM user WHERE id = " + id;
 
-    pool.getConnection(function (err, conn) {
-      // Do something with the connection
-      if (err) {
-        console.log('error', err);
-        next('error: ' + err.message);
-      }
-      if (conn) {
-        conn.query(sqlStatement, function (err, results, fields) {
-          if (err) {
-            logger.err(err.message);
-            next({
-              code: 400,
-              message: err.message
-            });
-          }
-          if (results) {
-            logger.info('Found user');
-            res.status(200).json({
-              statusCode: 200,
-              message: 'User id endpoint',
-              data: results
-            });
-          }
-        });
-        pool.releaseConnection(conn);
-      }
+    pool.getConnection((err, connection) => {
+      if (err) throw err;
+      connection.query(checkUserSql, [id], (err, results) => {
+        if (err) throw err;
+        if (results.length > 0) {
+          const user = results[0];
+          console.log(`User with ID ${id} found:`, user);
+          res.status(200).json({
+            statusCode: 200,
+            message: 'User id endpoint',
+            data: user
+          });
+          connection.release();
+          return user;
+        } else {
+          const error = new Error(`User with ID ${id} not found`);
+          console.error(error);
+          res.status(404).json({
+            statusCode: 404,
+            message: 'User not found',
+            data: id
+          })
+          connection.release();      
+        }
+      });
     });
   },
   //UC-205

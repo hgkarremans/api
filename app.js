@@ -31,51 +31,6 @@ app.get('/api/userprofile', (req, res) => {
     });
 });
 
-
-// //UC-205 gebruikersinformatie wijzigen
-// app.put('/api/user/change', (req, res) => {
-//     const user = req.body;
-
-//     //checken of er een identieke id in zit
-//     for (let i = 0; i < database['users'].length; i++) {
-//         let obj = database['users'][i];
-
-//         if (obj.id == user.id) {
-//             database['users'][i] = user;
-//             res.status(200).json({
-//                 status: 200,
-//                 message: `Changed the user with the id ${user.id}`,
-//                 data: obj
-//             });
-//         }
-//     } res.status(400).json({
-//         status: 400,
-//         message: `There is no user with id ${user.id}`
-//     })
-// });
-
-// //UC-206 verwijder de user bij de opgegeven user id
-// app.delete('/api/user/delete', (req, res) => {
-//     const id = req.body.id;
-
-//     //checken of er een identieke id in zit
-//     for (let i = 0; i < database['users'].length; i++) {
-//         let obj = database['users'][i];
-
-//         if (obj.id == id) {
-//             const removed = database['users'].slice(i);
-//             database['users'] = removed;
-//             res.status(200).json({
-//                 status: 200,
-//                 message: `Deleted the user with the id ${id}`,
-//                 data: obj
-//             });
-//         }
-//     } res.status(400).json({
-//         status: 400,
-//         message: `There is no user with id ${id}`
-//     })
-// });
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
 });

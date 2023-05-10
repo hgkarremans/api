@@ -37,9 +37,7 @@ describe('UC-201 Registreren als nieuwe user', () => {
                 status.should.equal(200);
                 message.should.be.a('string').that.contains('toegevoegd');
                 data.should.be.an('object');
-                // OPDRACHT!
-                // Bekijk zelf de API reference op https://www.chaijs.com/api/bdd/
-                // Daar zie je welke chained functions je nog meer kunt gebruiken.
+                
                 data.should.include({ id: 2 });
                 data.should.not.include({ id: 0 });
                 data.id.should.equal(2);
