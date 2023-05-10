@@ -14,11 +14,11 @@ const userController = {
     //validate incoming user info
     try {
       assert(typeof user.firstName === 'string', 'firstName must be a string');
-      // assert(
-      //   typeof user.emailAddress === 'string',
-      //   'emailAdress must be a string'
-      // );
-      // assert(typeof user.lastName === 'string', 'lastName must be a string');
+      assert(
+        typeof user.emailAddress === 'string',
+        'emailAdress must be a string'
+      );
+      assert(typeof user.lastName === 'string', 'lastName must be a string');
     } catch (err) {
       res.status(400).json({
         status: 400,
