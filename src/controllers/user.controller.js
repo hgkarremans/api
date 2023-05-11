@@ -8,7 +8,8 @@ const userController = {
   //UC-201
   createUser: (req, res) => {
     const user = req.body;
-    logger.info('Register user');
+
+    // logger.info('Register user');
     logger.debug('User=', user);
     //validate incoming user info
     try {
@@ -48,7 +49,6 @@ const userController = {
             });
           });
         } else {
-          console.log(`Email ${user.emailAdress} already exists`);
           res.status(400).json({
             statusCode: 400,
             message: 'Email already exists',
@@ -83,7 +83,7 @@ const userController = {
             });
           }
           if (results) {
-            logger.info('Found', results.length, 'results');
+            // logger.info('Found', results.length, 'results');
             res.status(200).json({
               statusCode: 200,
               message: 'User getAll endpoint',
@@ -117,7 +117,6 @@ const userController = {
         if (err) throw err;
         if (results.length > 0) {
           const user = results[0];
-          console.log(`User with ID ${id} found:`, user);
           res.status(200).json({
             statusCode: 200,
             message: 'User id endpoint',
@@ -165,7 +164,6 @@ const userController = {
             connection.release();
           });
         } else {
-          // user does not exist, return an error
           const error = new Error(`User with ID ${user.id} not found`);
           console.error(error);
           res.status(404).json({
@@ -174,7 +172,7 @@ const userController = {
             data: user
           });
           connection.release();
-          throw error;
+          
         }
       });
     });
@@ -213,7 +211,7 @@ const userController = {
             data: id
           });
           connection.release();
-          throw error;
+          
         }
       });
     });
