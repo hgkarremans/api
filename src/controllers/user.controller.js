@@ -9,13 +9,13 @@ const userController = {
   createUser: (req, res) => {
     const user = req.body;
 
-    logger.info('Register user');
+    // logger.info('Register user');
     logger.debug('User=', user);
     //validate incoming user info
     try {
       assert(typeof user.firstName === 'string', 'firstName must be a string');
       assert(
-        typeof user.emailAddress === 'string',
+        typeof user.emailAdress === 'string',
         'emailAdress must be a string'
       );
       assert(typeof user.lastName === 'string', 'lastName must be a string');
@@ -49,7 +49,6 @@ const userController = {
             });
           });
         } else {
-          console.log(`Email ${user.emailAdress} already exists`);
           res.status(400).json({
             statusCode: 400,
             message: 'Email already exists',
@@ -84,7 +83,7 @@ const userController = {
             });
           }
           if (results) {
-            logger.info('Found', results.length, 'results');
+            // logger.info('Found', results.length, 'results');
             res.status(200).json({
               statusCode: 200,
               message: 'User getAll endpoint',
@@ -117,7 +116,6 @@ const userController = {
         if (err) throw err;
         if (results.length > 0) {
           const user = results[0];
-          console.log(`User with ID ${id} found:`, user);
           res.status(200).json({
             statusCode: 200,
             message: 'User id endpoint',
@@ -165,7 +163,6 @@ const userController = {
             connection.release();
           });
         } else {
-          // user does not exist, return an error
           const error = new Error(`User with ID ${user.id} not found`);
           console.error(error);
           res.status(404).json({
@@ -174,7 +171,7 @@ const userController = {
             data: user
           });
           connection.release();
-          throw error;
+          
         }
       });
     });
@@ -185,7 +182,7 @@ const userController = {
     logger.info('Delete user');
     logger.debug('Id=', id);
 
-    const checkUserSql = 'SELECT * FROM users WHERE id = ?';
+    const checkUserSql = 'SELECT * FROM user WHERE id = ?';
     let sqlStatement = "DELETE FROM user WHERE id = " + id;
 
     pool.getConnection((err, connection) => {
@@ -213,7 +210,7 @@ const userController = {
             data: id
           });
           connection.release();
-          throw error;
+          
         }
       });
     });
