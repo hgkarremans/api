@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "test": "npx mocha -reporter spec test/**/*.test.js --exit --DB_PASSWORD {{env.MYSQL_ROOT_PASSWORD}} --DB_USER root --DB_NAME share_a_meal"
+    "test": "mocha -reporter spec test/**/*.test.js --exit"
   },
   "dependencies": {
     "chai-http": "^4.3.0",
