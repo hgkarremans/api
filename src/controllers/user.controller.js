@@ -8,14 +8,13 @@ const userController = {
   //UC-201
   createUser: (req, res) => {
     const user = req.body;
-
     logger.info('Register user');
     logger.debug('User=', user);
     //validate incoming user info
     try {
       assert(typeof user.firstName === 'string', 'firstName must be a string');
       assert(
-        typeof user.emailAddress === 'string',
+        typeof user.emailAdress === 'string',
         'emailAdress must be a string'
       );
       assert(typeof user.lastName === 'string', 'lastName must be a string');
@@ -105,6 +104,7 @@ const userController = {
   //UC-204
   getUserWithId: (req, res) => {
     const id = req.body.id;
+    console.log(req.body);
 
     logger.info('Find user');
     logger.debug('Id=', id);
@@ -185,7 +185,7 @@ const userController = {
     logger.info('Delete user');
     logger.debug('Id=', id);
 
-    const checkUserSql = 'SELECT * FROM users WHERE id = ?';
+    const checkUserSql = 'SELECT * FROM user WHERE id = ?';
     let sqlStatement = "DELETE FROM user WHERE id = " + id;
 
     pool.getConnection((err, connection) => {

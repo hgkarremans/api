@@ -15,7 +15,7 @@ app.get('/api/info', (req, res) => {
         data: {
             studentName: 'Hans Gerard Karremans',
             studentNumber: 2188909,
-            description: 'Welkom bij de server API van de share a meal.'
+            description: 'Welkom bij de server API van share a meal.'
         }
     });
 });

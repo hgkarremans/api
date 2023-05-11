@@ -1,17 +1,20 @@
-const assert = require('assert');
 const chai = require('chai');
+const mocha = require('mocha');
 const chaiHttp = require('chai-http');
 const server = require('../app');
-const { describe } = require('mocha');
+const describe = mocha.describe;
+const it = mocha.it;
+const assert = chai.assert;
 chai.use(chaiHttp);
-const should = require('should')
+const expect = chai.expect;
 
 
 describe('UC-201 Registreren als nieuwe user', () => {
+    
     it('TC-201-1 - Verplicht veld ontbreekt', (done) => {
         const newUser = {
-            "firstName": "Karel",
-            "lastName": "Ronaldo"
+            firstName: 'Karel',
+            lastName: 'Ronaldo'
         }
         chai
             .request(server)
@@ -19,102 +22,104 @@ describe('UC-201 Registreren als nieuwe user', () => {
             .send(newUser)
             .end((err, res) => {
                 assert(err === null);
-                res.body.should.be.an('object');
+                expect(res.body).to.be.an('object');
                 let { status, message, data } = res.body;
-                status.should.equal(400);
-                message.should.be.a('string').that.contains('emailAddress');
-                data.should.be.an('object');
+                expect(status).to.equal(400);
+                expect(message).to.be.a('string').that.contains('emailAdress');
+                expect(data).to.be.an('object');
             });
 
         done();
     });
-    // i commented out all the tests because they are not working and otherwise i cannot push them to github
-//     it('TC-201-2 - Verplicht veld ontbreekt', (done) => {
-//         const newUser = {
-//             "firstName": "Karel",
-//             "emailAddress": "ff@gmail.com"
-//         }
-//         chai
-//             .request(server)
-//             .post('/api/register')
-//             .send(newUser)
-//             .end((err, res) => {
-//                 assert(err === null);
-//                 res.body.should.be.an('object');
-//                 let { status, message, data } = res.body;
-//                 status.should.equal(400);
-//                 message.should.be.a('string').that.contains('lastName');
-//                 data.should.be.an('object');
-//             });
-//         done();
-//     });
-//     it('TC-201-3 - Verplicht veld ontbreekt', (done) => {
-//         const newUser = {
-//             "lastName": "Ronaldo",
-//             "emailAddress": "ffa@gmail.com"
-//         }
-//         chai
-//             .request(server)
-//             .post('/api/register')
-//             .send(newUser)
-//             .end((err, res) => {
-//                 assert(err === null);
-//                 res.body.should.be.an('object');
-//                 let { status, message, data } = res.body;
-//                 status.should.equal(400);
-//                 message.should.be.a('string').that.contains('firstName');
-//                 data.should.be.an('object');
-//             });
-//         done();
-//     });
-//     it('TC-201-4 - Emailadres is niet uniek', (done) => {
-//         const newUser = {
-//             "firstName": "Karel",
-//             "lastName": "Ronaldo",
-//             "emailAddress": "m.vandullemen@server.nl"
-//         }
-//         chai
-//             .request(server)
-//             .post('/api/register')
-//             .send(newUser)
-//             .end((err, res) => {
-//                 assert(err === null);
-//                 res.body.should.be.an('object');
-//                 let { status, message, data } = res.body;
-//                 status.should.equal(400);
-//                 message.should.be.a('string').that.contains('Email already exists');
-//                 data.should.be.an('object');
-//             });
-//         done();
-//     });
+    
+    it('TC-201-2 - Verplicht veld ontbreekt', (done) => {
+        const newUser = {
+            firstName: 'Karel',
+            emailAdress: 'karel@gmail.com'
+        }
+        chai
+            .request(server)
+            .post('/api/register')
+            .send(newUser)
+            .end((err, res) => {
+                assert(err === null);
+                expect(res.body).to.be.an('object');
+                let { status, message, data } = res.body;
+                expect(status).to.equal(400);
+                expect(message).to.be.a('string').that.contains('lastName');
+                expect(data).to.be.an('object');
+            });
+        done();
+    });
+    it('TC-201-3 - Verplicht veld ontbreekt', (done) => {
+        const newUser = {
+            lastName: 'Ronaldo',
+            emailAdress: 'ronaldo@gmail.com'
+        }
+        chai
+            .request(server)
+            .post('/api/register')
+            .send(newUser)
+            .end((err, res) => {
+                assert(err === null);
+                expect(res.body).to.be.an('object');
+                let { status, message, data } = res.body;
+                
+                expect(message).to.be.a('string').that.contains('firstName');
+                expect(data).to.be.an('object');
+            });
+        done();
+    });
+    it('TC-201-4 - Emailadres is niet uniek', (done) => {
+        const newUser = {
+            firstName: 'Karel',
+            lastName: 'Ronaldo',
+            emailAdress: 'm.vandullemen@server.nl'
+        }
+        chai
+            .request(server)
+            .post('/api/register')
+            .send(newUser)
+            .end((err, res) => {
+                assert(err === null);
+                
+                expect(res.body).to.be.an('object');
+                let { status, message, data } = res.body;
+                
+                
+                expect(message).to.be.a('string').that.contains('Email already exists');
+                expect(data).to.be.an('object');
+            });
+        done();
+    });
 
 // });
 
-// it('TC-201-5 - User succesvol geregistreerd', (done) => {
-//     // nieuwe user waarmee we testen
-//     const newUser = {
-//         "firstName": "Karel",
-//         "lastName": "Ronaldo",
-//         "emailAddress": "Karel.R@gmail.com"
-//     }
+it('TC-201-5 - User succesvol geregistreerd', (done) => {
+    // nieuwe user waarmee we testen
+    const newUser = {
+        firstName: 'Karel',
+        lastName: 'Ronaldo',
+        emailAdress: 'Karel.R@gmail.com'
+    }
 
-//     // Voer de test uit
-//     chai
-//         .request(server)
-//         .post('/api/register')
-//         .send(newUser)
-//         .end((err, res) => {
-//             assert(err === null);
-//             res.body.should.be.an('object');
-//             let { status, message, data } = res.body;
-//             status.should.equal(200);
-//             message.should.be.a('string').that.contains('toegevoegd');
-//             data.should.be.an('object');
-//             data.firstName.should.equal("Karel");
-//             data.emailAddress.should.equal("Karel.R@gmail.com")
-//             done();
-//         });
-// });
+    // Voer de test uit
+    chai
+        .request(server)
+        .post('/api/register')
+        .send(newUser)
+        .end((err, res) => {
+            assert(err === null);
+            expect(res.body).to.be.an('object');
+            let { status, message, data } = res.body;
+            expect(status).to.equal(200);
+            expect(message).to.be.a('string').that.contains('User register endpoint');
+            expect(data).to.be.an('object');
+            expect(data.firstName).to.equal("Karel");
+            expect(data.lastName).to.equal("Ronaldo");
+            done();
+        });
+});
 
 // describe('UC-202 Opvragen van overzicht van users', () => {
 //     it('TC-202-1 - Toon alle gebruikers, minimaal 2', (done) => {
@@ -217,7 +222,7 @@ describe('UC-201 Registreren als nieuwe user', () => {
 //                 "id": 0,
 //                 "firstName": "Karel",
 //                 "lastName": "Ronaldo",
-//                 "emailAddress": "Karel.R@gmail.com"
+//                 "emailAdress": "Karel.R@gmail.com"
 //             }
 //             chai
 //                 .request(server)
@@ -239,7 +244,7 @@ describe('UC-201 Registreren als nieuwe user', () => {
 //                 "id": 1000,
 //                 "firstName": "Karel",
 //                 "lastName": "Ronaldo",
-//                 "emailAddress": "karel@gmail.com"
+//                 "emailAdress": "karel@gmail.com"
 //             }
 //             chai
 //                 .request(server)
