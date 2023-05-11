@@ -10,6 +10,15 @@ const should = require('should');
 const request = require('supertest');
 const expect = chai.expect;
 
+const CLEAR_MEAL_TABLE = 'DELETE IGNORE FROM meal';
+const CLEAR_USER_TABLE = 'DELETE IGNORE FROM user';
+const CLEAR_PARTICIPANTS_TABLE = 'DELETE IGNORE FROM meal_participants_user';
+const CLEAR_DB = 
+    CLEAR_MEAL_TABLE + CLEAR_PARTICIPANTS_TABLE + CLEAR_USER_TABLE;
+
+const INSERT_USER = 
+'INSERT INTO user (id, firstName, lastName, emailAdress) VALUES (1, "Karel", "Ronaldo", "ronaldo@gmail.com")'
+
 
 describe('UC-201 Registreren als nieuwe user', () => {
     
