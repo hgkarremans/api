@@ -8,8 +8,46 @@ const should = require('should');
 const request = require('supertest');
 const expect = chai.expect;
 
+const CLEAR_MEAL_TABLE = 'DELETE IGNORE FROM meal';
+const CLEAR_USER_TABLE = 'DELETE IGNORE FROM user';
+const CLEAR_PARTICIPANTS_TABLE = 'DELETE IGNORE FROM meal_participants_user';
+const CLEAR_DB = 
+    CLEAR_MEAL_TABLE + CLEAR_PARTICIPANTS_TABLE + CLEAR_USER_TABLE;
+
+const INSERT_USER = 
+'INSERT INTO user (id, firstName, lastName, emailAdress) VALUES (1, "Karel", "Ronaldo", "ronaldo@gmail.com")'
+
 
 describe('UC-201 Registreren als nieuwe user', () => {
+    beforeEach((done) => {
+        pool.getConnection((err, connection) => {
+      if (err) throw err;
+
+      // execute the check email SQL statement
+      connection.query(checkEmailSql, [user.emailAdress], (err, results) => {
+        if (err) throw err;
+        const count = results[0].count;
+        if (count === 0) {
+          connection.query(sqlStatement, [user.emailAdress], (err, results) => {
+            if (err) throw err;
+            res.status(200).json({
+              statusCode: 200,
+              message: 'User register endpoint',
+              data: user
+            });
+          });
+        } else {
+          res.status(400).json({
+            statusCode: 400,
+            message: 'Email already exists',
+            data: user
+          });
+        }
+        connection.release();
+      });
+    });
+    });
+
     it('TC-201-1 - Verplicht veld ontbreekt', (done) => {
         const newUser = {
             firstName: 'Karel',
