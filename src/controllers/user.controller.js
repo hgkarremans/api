@@ -97,14 +97,58 @@ const userController = {
   },
 
   //uc 203
-  // functie nog niet gerealiseerd
+  // functie nog niet gerealiseerd, komt later
+  getUserProfile: (req, res) => {
 
+    res.status(403).json({
+      statusCode: 403,
+      message: 'Functie nog niet gerealiseerd',
+      data: 'Not implemented'
+
+    });
+  },
 
 
   //UC-204
   getUserWithId: (req, res) => {
     const id = req.body.id;
     console.log(req.body);
+
+    logger.info('Find user');
+    logger.debug('Id=', id);
+    const checkUserSql = 'SELECT * FROM user WHERE id = ?';
+
+
+    pool.getConnection((err, connection) => {
+      if (err) throw err;
+      connection.query(checkUserSql, [id], (err, results) => {
+        if (err) throw err;
+        if (results.length > 0) {
+          const user = results[0];
+          res.status(200).json({
+            statusCode: 200,
+            message: 'User id endpoint',
+            data: user
+          });
+          connection.release();
+          return user;
+        } else {
+          const error = new Error(`User with ID ${id} not found`);
+          console.error(error);
+          res.status(404).json({
+            statusCode: 404,
+            message: 'User not found',
+            data: id
+          })
+          connection.release();
+        }
+      });
+    });
+  },
+
+  //UC-204
+  getUserWithId: (req, res) => {
+    const id = req.body.id;
 
     logger.info('Find user');
     logger.debug('Id=', id);
@@ -172,7 +216,7 @@ const userController = {
             data: user
           });
           connection.release();
-          
+
         }
       });
     });
@@ -211,7 +255,7 @@ const userController = {
             data: id
           });
           connection.release();
-          
+
         }
       });
     });
