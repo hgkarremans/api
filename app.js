@@ -21,16 +21,6 @@ app.get('/api/info', (req, res) => {
 });
 app.use('/api/users', userRouters);
 
-//UC-203 gebruikersprofiel ophalen
-app.get('/api/userprofile', (req, res) => {
-
-    // Stuur het response terug
-    res.status(403).json({
-        status: 403,
-        message: `Deze functionaliteit is nog niet gerealiseerd`,
-    });
-});
-
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
 });

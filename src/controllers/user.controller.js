@@ -98,124 +98,131 @@ const userController = {
 
   //uc 203
   // functie nog niet gerealiseerd
+  getUserProfile: (req, res) => {
 
+    res.status(403).json({
+      statusCode: 403,
+      message: 'Functie nog niet gerealiseerd',
+      data: 'Not implemented'
 
-
-  //UC-204
-  getUserWithId: (req, res) => {
-    const id = req.body.id;
-
-    logger.info('Find user');
-    logger.debug('Id=', id);
-    const checkUserSql = 'SELECT * FROM user WHERE id = ?';
-
-
-    pool.getConnection((err, connection) => {
-      if (err) throw err;
-      connection.query(checkUserSql, [id], (err, results) => {
-        if (err) throw err;
-        if (results.length > 0) {
-          const user = results[0];
-          res.status(200).json({
-            statusCode: 200,
-            message: 'User id endpoint',
-            data: user
-          });
-          connection.release();
-          return user;
-        } else {
-          const error = new Error(`User with ID ${id} not found`);
-          console.error(error);
-          res.status(404).json({
-            statusCode: 404,
-            message: 'User not found',
-            data: id
-          })
-          connection.release();
-        }
-      });
     });
   },
-  //UC-205
-  updateUser: (req, res) => {
 
-    const user = req.body;
+    //UC-204
+    getUserWithId: (req, res) => {
+      const id = req.body.id;
 
-    logger.info('Update user');
-    logger.debug('User=', user);
+      logger.info('Find user');
+      logger.debug('Id=', id);
+      const checkUserSql = 'SELECT * FROM user WHERE id = ?';
 
-    const checkUserSql = 'SELECT * FROM user WHERE id = ?';
-    const sqlStatement = "UPDATE user SET firstName = '" + user.firstName + "', lastName = '" + user.lastName + "', emailAdress = '" + user.emailAdress + "' WHERE id = " + user.id;
 
-    pool.getConnection((err, connection) => {
-      if (err) throw err;
-      connection.query(checkUserSql, [user.id], (err, results) => {
+      pool.getConnection((err, connection) => {
         if (err) throw err;
-        if (results.length > 0) {
-          connection.query(sqlStatement, [user.firstName, user.lastName, user.email, user.id], (err, results) => {
-            if (err) throw err;
-            console.log(`User with ID ${user.id} updated successfully`);
+        connection.query(checkUserSql, [id], (err, results) => {
+          if (err) throw err;
+          if (results.length > 0) {
+            const user = results[0];
             res.status(200).json({
               statusCode: 200,
-              message: 'User update endpoint',
+              message: 'User id endpoint',
               data: user
             });
             connection.release();
-          });
-        } else {
-          const error = new Error(`User with ID ${user.id} not found`);
-          console.error(error);
-          res.status(404).json({
-            statusCode: 404,
-            message: 'User not found',
-            data: user
-          });
-          connection.release();
-          
-        }
-      });
-    });
-  },
-  deleteUser: (req, res) => {
-    const id = req.body.id;
-
-    logger.info('Delete user');
-    logger.debug('Id=', id);
-
-    const checkUserSql = 'SELECT * FROM user WHERE id = ?';
-    let sqlStatement = "DELETE FROM user WHERE id = " + id;
-
-    pool.getConnection((err, connection) => {
-      if (err) throw err;
-      connection.query(checkUserSql, [id], (err, results) => {
-        if (err) throw err;
-        if (results.length > 0) {
-          connection.query(sqlStatement, [id], (err, results) => {
-            if (err) throw err;
-            console.log(`User with ID ${id} deleted successfully`);
-
-            res.status(200).json({
-              statusCode: 200,
-              message: 'User delete endpoint',
+            return user;
+          } else {
+            const error = new Error(`User with ID ${id} not found`);
+            console.error(error);
+            res.status(404).json({
+              statusCode: 404,
+              message: 'User not found',
               data: id
-            });
+            })
             connection.release();
-          });
-        } else {
-          const error = new Error(`User with ID ${id} not found`);
-          console.error(error);
-          res.status(404).json({
-            statusCode: 404,
-            message: 'User not found',
-            data: id
-          });
-          connection.release();
-          
-        }
+          }
+        });
       });
-    });
-  }
-};
+    },
+      //UC-205
+      updateUser: (req, res) => {
+
+        const user = req.body;
+
+        logger.info('Update user');
+        logger.debug('User=', user);
+
+        const checkUserSql = 'SELECT * FROM user WHERE id = ?';
+        const sqlStatement = "UPDATE user SET firstName = '" + user.firstName + "', lastName = '" + user.lastName + "', emailAdress = '" + user.emailAdress + "' WHERE id = " + user.id;
+
+        pool.getConnection((err, connection) => {
+          if (err) throw err;
+          connection.query(checkUserSql, [user.id], (err, results) => {
+            if (err) throw err;
+            if (results.length > 0) {
+              connection.query(sqlStatement, [user.firstName, user.lastName, user.email, user.id], (err, results) => {
+                if (err) throw err;
+                console.log(`User with ID ${user.id} updated successfully`);
+                res.status(200).json({
+                  statusCode: 200,
+                  message: 'User update endpoint',
+                  data: user
+                });
+                connection.release();
+              });
+            } else {
+              const error = new Error(`User with ID ${user.id} not found`);
+              console.error(error);
+              res.status(404).json({
+                statusCode: 404,
+                message: 'User not found',
+                data: user
+              });
+              connection.release();
+
+            }
+          });
+        });
+      },
+        deleteUser: (req, res) => {
+          const id = req.body.id;
+
+          logger.info('Delete user');
+          logger.debug('Id=', id);
+
+          const checkUserSql = 'SELECT * FROM user WHERE id = ?';
+          let sqlStatement = "DELETE FROM user WHERE id = " + id;
+
+          pool.getConnection((err, connection) => {
+            if (err) throw err;
+            connection.query(checkUserSql, [id], (err, results) => {
+              if (err) throw err;
+              if (results.length > 0) {
+                connection.query(sqlStatement, [id], (err, results) => {
+                  if (err) throw err;
+                  console.log(`User with ID ${id} deleted successfully`);
+
+                  res.status(200).json({
+                    statusCode: 200,
+                    message: 'User delete endpoint',
+                    data: id
+                  });
+                  connection.release();
+                });
+              } else {
+                const error = new Error(`User with ID ${id} not found`);
+                console.error(error);
+                res.status(404).json({
+                  statusCode: 404,
+                  message: 'User not found',
+                  data: id
+                });
+                connection.release();
+
+              }
+            });
+          });
+        }
+  };
 
 
-module.exports = userController;
+  module.exports = userController;
