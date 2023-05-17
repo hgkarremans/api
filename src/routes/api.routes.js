@@ -6,6 +6,6 @@ const apiController = require('../controllers/api.controller');
 router.post('/login', apiController.loginUser);
 
 // UC-102 info
-router.get('/info', apiController.getInfo);
+router.get('/:info', apiController.getInfo);
 
 module.exports = router;
