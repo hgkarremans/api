@@ -31,8 +31,8 @@ const mealController = {
             return;
         }
 
-        let sqlStatement = "INSERT INTO meal (name, description, price, isActive, isVega, isVegan, isToTakeHome, dateTime, maxAmountOfParticipants, imageUrl, cookId, createDate, allergenes) VALUES ('" + meal.name + "', '" + meal.description + "', '" + meal.price + "', '" + meal.isActive + "', '" + meal.isVega + "', '" + meal.isVegan + "', '" + meal.isToTakeHome + "', '" + meal.dateTime + "', '" + meal.maxAmountOfParticipants + "', '" + meal.imageUrl + "', '" + meal.cookId + "', '" + time + "', '" + meal.allergenes + "')";
-
+        let sqlStatement = "INSERT INTO `meal`(`isActive`, `isVega`, `isVegan`, `isToTakeHome`, `dateTime`, `maxAmountOfParticipants`, `price`, `imageUrl`, `cookId`, `createDate`, `updateDate`, `name`, `description`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);";
+        const date = new Date().toISOString().slice(0, 19).replace("T", " ");
         pool.getConnection(function (err, conn) {
             // Do something with the connection
             if (err) {
@@ -40,23 +40,38 @@ const mealController = {
                 next('error: ' + err.message);
             }
             if (conn) {
-                conn.query(sqlStatement, function (err, results, fields) {
-                    if (err) {
-                        logger.err(err.message);
-                        next({
-                            code: 409,
-                            message: err.message
-                        });
-                    }
-                    if (results) {
-                        logger.info('Found', results.length, 'results');
-                        res.status(200).json({
-                            statusCode: 200,
-                            message: 'meal create endpoint',
-                            data: meal
-                        });
-                    }
-                });
+                conn.query(sqlStatement, [
+                    meal.isActive,
+                    meal.isVegan,
+                    meal.isVega,
+                    meal.isToTakeHome,
+                    meal.dateTime,
+                    meal.maxAmountOfParticipants,
+                    meal.price,
+                    meal.imageUrl,
+                    req.jwtUserId,
+                    date,
+                    date,
+                    meal.name,
+                    meal.description,
+                ],
+                    function (err, results, fields) {
+                        if (err) {
+                            logger.err(err.message);
+                            next({
+                                code: 409,
+                                message: err.message
+                            });
+                        }
+                        if (results) {
+                            logger.info('Found', results.length, 'results');
+                            res.status(200).json({
+                                statusCode: 200,
+                                message: 'meal create endpoint',
+                                data: meal
+                            });
+                        }
+                    });
                 pool.releaseConnection(conn);
             }
         });
