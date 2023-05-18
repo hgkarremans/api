@@ -3,6 +3,22 @@ const logger = require('../util/utils').logger;
 const assert = require('assert');
 const pool = require('../util/mysql-db');
 
+const authenticateJWT = (req, res, next) => {
+  const token = req.headers.authorization;
+
+  if (token) {
+      jwt.verify(token, 'your-secret-key', (err, decoded) => {
+          if (err) {
+              return res.sendStatus(403);
+          }
+          req.user = decoded;
+          next();
+      });
+  } else {
+      res.sendStatus(401);
+  }
+};
+
 const userController = {
 
   //UC-201

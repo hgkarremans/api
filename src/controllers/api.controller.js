@@ -9,38 +9,42 @@ const apiController = {
     loginUser: async (req, res) => {
         // Extract user login data from the request body
         const { emailAdress, password } = req.body;
+        let sqlStatement = 'SELECT * FROM user WHERE emailAdress  = ? AND password = ?'
 
-        try {
-            const conn = await pool.getConnection(); // Wait for the connection promise to resolve
-            const result = await conn.query('SELECT * FROM user WHERE emailAdress  = ? AND password = ?', [emailAdress, password]);
-            conn.release();
-          
-            if (result.length === 1) {
-              // Generate JWT and send it back to the client
-              const token = jwt.sign({ username }, 'your-secret-key');
-              res.json({ token });
-            } else {
-              res.status(401).json({ message: 'Invalid credentials' });
+        pool.getConnection(function (err, conn) {
+            // Do something with the connection
+            if (err) {
+                console.log('error', err);
+                next('error: ' + err.message);
             }
-          } catch (error) {
-            console.error('Error executing the query: ', error);
-            res.status(500).json({ message: 'Internal server error' });
-          }
-
-        
-
-        // // Retrieve user data from the database
-        // const conn = pool.getConnection();
-        // const result = await conn.query('SELECT * FROM user WHERE emailAdress  = ? AND password = ?', [emailAdress, password]);
-        // conn.release();
-
-        // if (result.length === 1) {
-        //     // Generate JWT and send it back to the client
-        //     const token = jwt.sign({ username }, 'your-secret-key');
-        //     res.json({ token });
-        // } else {
-        //     res.status(401).json({ message: 'Invalid credentials' });
-        // }
+            if (conn) {
+                conn.query(sqlStatement,[emailAdress, password], function (err, results, fields) {
+                    if (err) {
+                        logger.err(err.message);
+                        next({
+                            code: 409,
+                            message: err.message
+                        });
+                    }
+                    if (results.length == 1) {
+                        const token = jwt.sign({ emailAdress }, 'your-secret-key');
+                        res.status(200).json({
+                            statusCode: 200,
+                            message: 'User login endpoint',
+                            data: "Token: " + token
+                        });
+                    }
+                    if (results.length == 0) {
+                        res.status(401).json({
+                            statusCode: 401,
+                            message: 'User login endpoint',
+                            data: 'Invalid credentials'
+                        });
+                    }
+                });
+                pool.releaseConnection(conn);
+            }
+        });
     },
 
     getInfo: (req, res) => {
