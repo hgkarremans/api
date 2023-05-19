@@ -9,7 +9,7 @@ const authenticateJWT = (req, res) => {
   const bearerHeader = req.headers["authorization"];
   if (typeof bearerHeader !== 'undefined') {
     const bearer = bearerHeader.split(" ");
-    const bearerToken = bearer[1];
+    const bearerToken = bearer[2];
     req.token = bearerToken;
   } else {
     res.sendStatus(403);
@@ -189,7 +189,7 @@ const userController = {
       if (err) {
         res.sendStatus(403);
         console.log(err);
-      } else { 
+      } else {
         const decoded = jwt.verify(req.token, 'your-secret-key');
         const checkUserSql = 'SELECT * FROM user INNER JOIN meal ON meal.cookId=user.id WHERE user.id=?';
         logger.info('Find user');
@@ -207,12 +207,12 @@ const userController = {
               });
               connection.release();
               return user;
-            } 
+            }
           });
         });
       }
     });
-    
+
   },
 
   //UC-204
@@ -279,7 +279,7 @@ const userController = {
         //validate incoming user info
 
         try {
-          
+
           assert(typeof user.id === 'number', 'id must be a number');
           assert(user.id == decoded.userId, 'id must be the same as the logged in user')
           assert(typeof user.firstName === 'string', 'firstName must be a string');

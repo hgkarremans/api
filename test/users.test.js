@@ -7,55 +7,62 @@ chai.use(chaiHttp);
 const should = require('should');
 const request = require('supertest');
 const expect = chai.expect;
+const pool = require('../src/util/mysql-db');
 
 const CLEAR_MEAL_TABLE = 'DELETE IGNORE FROM meal';
 const CLEAR_USER_TABLE = 'DELETE IGNORE FROM user';
 const CLEAR_PARTICIPANTS_TABLE = 'DELETE IGNORE FROM meal_participants_user';
-const CLEAR_DB = 
+const CLEAR_DB =
     CLEAR_MEAL_TABLE + CLEAR_PARTICIPANTS_TABLE + CLEAR_USER_TABLE;
 
-const INSERT_USER = 
-'INSERT INTO user (id, firstName, lastName, emailAdress) VALUES (1, "Karel", "Ronaldo", "ronaldo@gmail.com")'
-
-
+const INSERT_USER =
+    'INSERT INTO user (firstName, lastName, isActive, emailAdress, password, phoneNumber, roles, street, city) VALUES ("Karel", "Ronaldo", 1, "ronaldo@gmail.com", "secret", "0618128342", "member", "meilustweg", "BOZ")'
+const INSERT_USER2 = 'INSERT INTO user (firstName, lastName, isActive, emailAdress, password, phoneNumber, roles, street, city) VALUES ("Karel", "Ronaldo", 1, "hg.karremans@gmail.com", "secret", "0618128342", "member", "meilustweg", "BOZ")'
 describe('UC-201 Registreren als nieuwe user', () => {
     beforeEach((done) => {
-        pool.getConnection((err, connection) => {
-      if (err) throw err;
-
-      // execute the check email SQL statement
-      connection.query(checkEmailSql, [user.emailAdress], (err, results) => {
-        if (err) throw err;
-        const count = results[0].count;
-        if (count === 0) {
-          connection.query(sqlStatement, [user.emailAdress], (err, results) => {
-            if (err) throw err;
-            res.status(200).json({
-              statusCode: 200,
-              message: 'User register endpoint',
-              data: user
-            });
-          });
-        } else {
-          res.status(400).json({
-            statusCode: 400,
-            message: 'Email already exists',
-            data: user
-          });
-        }
-        connection.release();
-      });
-    });
+        pool.getConnection(function (err, conn) {
+            // Do something with the connection
+            if (err) {
+                console.log('error', err);
+                next('error: ' + err.message);
+            }
+            if (conn) {
+                conn.query(CLEAR_USER_TABLE, function (err, results, fields) {
+                    if (err) {
+                        logger.err(err.message);
+                        next();
+                    }
+                    if (results) {
+                        // logger.info('Found', results.length, 'results');
+                        conn.query(INSERT_USER, function (err, results, fields) {
+                            if (err) {
+                                logger.err(err.message);
+                                next();
+                            }
+                            if (results) {
+                                done();
+                            }
+                        });
+                    }
+                });
+                pool.releaseConnection(conn);
+            }
+        });
     });
 
     it('TC-201-1 - Verplicht veld ontbreekt', (done) => {
         const newUser = {
             firstName: 'Karel',
-            lastName: 'Ronaldo'
+            lastName: 'Ronaldo',
+            phoneNumber: '0618128342',
+            isActive: 1,
+            roles: 'member',
+            street: 'meilustweg',
+            city: 'BOZ'
         };
         chai
             .request(server)
-            .post('/api/users/register')
+            .post('/api/user')
             .send(newUser)
             .end((err, res) => {
                 assert(err === null);
@@ -66,18 +73,21 @@ describe('UC-201 Registreren als nieuwe user', () => {
                 expect(data).to.be.an('object');
                 done();
             });
-
-
     });
 
     it('TC-201-2 - Verplicht veld ontbreekt', (done) => {
         const newUser = {
             firstName: 'Karel',
-            emailAdress: 'ff@gmail.com'
+            emailAdress: 'ff@gmail.com',
+            phoneNumber: '0618128342',
+            isActive: 1,
+            roles: 'member',
+            street: 'meilustweg',
+            city: 'BOZ'
         }
         chai
             .request(server)
-            .post('/api/users/register')
+            .post('/api/user')
             .send(newUser)
             .end((err, res) => {
                 assert(err === null);
@@ -93,11 +103,16 @@ describe('UC-201 Registreren als nieuwe user', () => {
     it('TC-201-3 - Verplicht veld ontbreekt', (done) => {
         const newUser = {
             lastName: 'Ronaldo',
-            emailAdress: 'ffa@gmail.com'
+            emailAdress: 'ffa@gmail.com',
+            phoneNumber: '0618128342',
+            isActive: 1,
+            roles: 'member',
+            street: 'meilustweg',
+            city: 'BOZ'
         }
         chai
             .request(server)
-            .post('/api/users/register')
+            .post('/api/user')
             .send(newUser)
             .end((err, res) => {
                 assert(err === null);
@@ -114,16 +129,23 @@ describe('UC-201 Registreren als nieuwe user', () => {
         const newUser = {
             firstName: 'Karel',
             lastName: 'Ronaldo',
-            emailAdress: 'm.vandullemen@server.nl'
+            emailAdress: 'ronaldo@gmail.com',
+            password: 'secret',
+            phoneNumber: '0618128342',
+            isActive: 1,
+            roles: 'member',
+            street: 'meilustweg',
+            city: 'BOZ'
         }
         chai
             .request(server)
-            .post('/api/users/register')
+            .post('/api/user')
             .send(newUser)
             .end((err, res) => {
                 assert(err === null);
                 expect(res.body).to.be.an('object');
                 let { status, message, data } = res.body;
+
                 expect(res.body.statusCode).to.equal(400);
                 expect(message).to.be.a('string').that.contains('Email already exists');
                 expect(data).to.be.an('object');
@@ -139,22 +161,27 @@ describe('UC-201 Registreren als nieuwe user', () => {
         const newUser = {
             firstName: 'Karel',
             lastName: 'Ronaldo',
-            emailAdress: 'm.vandullementest@server.nl'
+            emailAdress: 'm.vandullementest@server.nl',
+            password: 'secret',
+            isActive: 1,
+            phoneNumber: '0618128342',
+            isActive: 1,
+            roles: 'member',
+            street: 'meilustweg',
+            city: 'BOZ'
         }
 
         // Voer de test uit
         chai
             .request(server)
-            .post('/api/users/register')
+            .post('/api/user')
             .send(newUser)
             .end((err, res) => {
                 assert(err === null);
                 expect(res.body).to.be.an('object');
                 let { status, message, data } = res.body;
-                console.log(res.body.statusCode);
-                console.log(res.body.message);
-                console.log(res.body.data);
-                expect(res.body.status).to.equal(200);
+
+                expect(res.body.statusCode).to.equal(200);
                 expect(message).to.be.a('string').that.contains('User register endpoint');
                 expect(data).to.be.an('object');
                 expect(data.firstName).to.equal('Karel');
@@ -163,12 +190,51 @@ describe('UC-201 Registreren als nieuwe user', () => {
             });
     });
 
-    describe('UC-202 Opvragen van overzicht van users', () => {
+    describe.only('UC-202 Opvragen van overzicht van users', () => {
+        beforeEach((done) => {
+            pool.getConnection(function (err, conn) {
+                // Do something with the connection
+                if (err) {
+                    console.log('error', err);
+                    next('error: ' + err.message);
+                }
+                if (conn) {
+                    conn.query(CLEAR_USER_TABLE, function (err, results, fields) {
+                        if (err) {
+                            logger.err(err.message);
+                            next();
+                        }
+                        if (results) {
+                            // logger.info('Found', results.length, 'results');
+                            conn.query(INSERT_USER, function (err, results, fields) {
+                                if (err) {
+                                    logger.err(err.message);
+                                    next();
+                                }
+                                if (results) {
+                                    conn.query(INSERT_USER2, function (err, results, fields) {
+                                        if (err) {
+                                            logger.err(err.message);
+                                            next();
+                                        }
+                                        if (results) {
+                                            done();
+                                        }
+                                    });
+
+                                }
+                            });
+                        }
+                    });
+                    pool.releaseConnection(conn);
+                }
+            });
+        });
         it('TC-202-1 - Toon alle gebruikers, minimaal 2', (done) => {
             // Voer de test uit
             chai
                 .request(server)
-                .get('/api/users')
+                .get('/api/user')
                 .end((err, res) => {
                     assert(err === null);
                     let { statusCode, message, data } = res.body;
@@ -181,25 +247,21 @@ describe('UC-201 Registreren als nieuwe user', () => {
                 });
         });
 
-        //     // Je kunt een test ook tijdelijk skippen om je te focussen op andere testcases.
-        //     // Dan gebruik je it.skip
-        it.skip('TC-202-2 - Toon gebruikers met zoekterm op niet-bestaande velden', (done) => {
+
+        it('TC-202-2 - Toon gebruikers met zoekterm op niet-bestaande velden', (done) => {
             // Voer de test uit
             chai
                 .request(server)
-                .get('/api/users')
+                .get('/api/user')
                 .query({ name: 'foo', city: 'non-existent' })
                 // Is gelijk aan .get('/api/user?name=foo&city=non-existent')
                 .end((err, res) => {
                     assert(err === null);
-
-                    res.body.should.be.an('object');
-                    let { data, message, status } = res.body;
-
-                    status.should.equal(200);
-                    message.should.be.a('string').equal('User getAll endpoint');
-                    data.should.be.an('array');
-
+                    expect(res.body).to.be.an('object');
+                    let { statusCode, message, data } = res.body;
+                    expect(res.body).to.be.an('object');
+                    expect(res.body.statusCode).to.equal(200);
+                    expect(message).to.be.a('string').that.contains('User getAll endpoint');
                     done();
                 });
         });
@@ -211,12 +273,17 @@ describe('UC-201 Registreren als nieuwe user', () => {
             chai
                 .request(server)
                 .get('/api/userprofile')
+                .set('Authorization', token)
                 .end((err, res) => {
                     assert(err === null);
-                    let { status, message } = res.body;
-                    status.should.equal(403);
-                    message.should.be.a('string').equal('Deze functionaliteit is nog niet gerealiseerd');
+                    let { status, message, data } = res.body;
+                    expect(res.body).to.be.an('object');
+                    expect(res.body.statusCode).to.equal(200);
+                    expect(message).to.be.a('string').that.contains('User profile endpoint');
+                    expect(data).to.be.an('object');
+                    expect(data.id).to.equal(1);
                     done();
+
                 });
         });
     });
@@ -324,8 +391,7 @@ describe('UC-201 Registreren als nieuwe user', () => {
                 .end((err, res) => {
                     assert(err === null);
                     let { status, message, data } = res.body;
-                    console.log(res.body.statusCode);
-                    console.log(res.body);
+
                     expect(res.body).to.be.an('object');
                     expect(res.body.statusCode).to.equal(200);
                     expect(message).to.be.a('string').that.contains('User delete endpoint');

@@ -8,13 +8,13 @@ var jwt = require('jsonwebtoken');
 const authenticateJWT = (req, res) => {
     const bearerHeader = req.headers["authorization"];
     if (typeof bearerHeader !== 'undefined') {
-        const bearer = bearerHeader.split(" ");
-        const bearerToken = bearer[1];
-        req.token = bearerToken;
+      const bearer = bearerHeader.split(" ");
+      const bearerToken = bearer[2];
+      req.token = bearerToken;
     } else {
-        res.sendStatus(403);
+      res.sendStatus(403);
     }
-};
+  };
 
 const mealController = {
 
