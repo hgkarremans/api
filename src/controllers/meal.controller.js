@@ -5,14 +5,25 @@ const { time } = require('console');
 const { json } = require('body-parser');
 var jwt = require('jsonwebtoken');
 
+const authenticateJWT = (req, res) => {
+    const bearerHeader = req.headers["authorization"];
+    if (typeof bearerHeader !== 'undefined') {
+        const bearer = bearerHeader.split(" ");
+        const bearerToken = bearer[1];
+        req.token = bearerToken;
+    } else {
+        res.sendStatus(403);
+    }
+};
+
 const mealController = {
 
     //UC-301 Toevoegen maaltijd
     createMeal: (req, res) => {
+        authenticateJWT(req, res);  //check if user is logged in
         jwt.verify(req.token, 'your-secret-key', function (err, data) {
             if (err) {
                 res.sendStatus(403);
-
                 console.log(err);
             } else {
                 const meal = req.body;
@@ -25,14 +36,6 @@ const mealController = {
                 logger.debug('Meal=', meal);
                 //validate incoming user info
                 try {
-                    assert(
-                        emailAdress != null,
-                        "Emailaddress must be provided in request"
-                    );
-                    assert(
-                        password != null,
-                        "Password must be provided in request"
-                    );
                     assert(typeof meal.name === 'string', 'name must be a string');
                     assert(typeof meal.description === 'string', 'description must be a string');
                     assert(typeof meal.price === 'number', 'price must be a number');
@@ -76,7 +79,7 @@ const mealController = {
                             date,
                             date,
                             meal.name,
-                            meal.description,
+                            meal.description
                         ],
                             function (err, results, fields) {
                                 if (err) {
@@ -100,65 +103,98 @@ const mealController = {
                 });
             }
         });
-
-
     },
 
     //UC-302 wijzig maaltijd
     updateMeal: (req, res) => {
-
-        jsonMeal = req.body;
-        mealId = jsonMeal.id;
-        console.log(mealId);
-        console.log(jsonMeal);
-        logger.info('Update meal');
-        logger.debug('id=', mealId);
-        let today = new Date();
-        let currentTime = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-
-        //validate incoming user info
-        try {
-            assert(typeof jsonMeal.name === 'string', 'name must be a string');
-            assert(typeof jsonMeal.description === 'string', 'description must be a string');
-            assert(typeof jsonMeal.price === 'number', 'price must be a number');
-            assert(typeof jsonMeal.maxAmountOfParticipants === 'number', 'maxParticipants must be a number');
-
-        } catch (err) {
-            res.status(400).json({
-                status: 400,
-                message: err.message.toString(),
-                data: jsonMeal
-            });
-        }
-
-        const sqlStatement = 'UPDATE meal SET name = ?, description = ?, price = ?, isActive = ?, isVega = ?, isVegan = ?, isToTakeHome = ?, dateTime = ?, maxAmountOfParticipants = ?, imageUrl = ?, cookId = ?, updateDate = ?, allergenes = ? WHERE id = ?';
-
-        pool.getConnection(function (err, conn) {
-            // Do something with the connection
+        authenticateJWT(req, res);  //check if user is logged in
+        jwt.verify(req.token, 'your-secret-key', function (err, data) {
             if (err) {
-                console.log('error', err);
-                next('error: ' + err.message);
-            }
-            if (conn) {
-                conn.query(sqlStatement, [jsonMeal.name, jsonMeal.description, jsonMeal.price, jsonMeal.isActive, jsonMeal.isVega, jsonMeal.isVega, jsonMeal.isToTakeHome, jsonMeal.dateTime, jsonMeal.maxAmountOfParticipants, jsonMeal.imageUrl, req.jwtUserId, currentTime, jsonMeal.allergenes], function (err, results, fields) {
-                    if (err) {
+                res.sendStatus(403);
+                console.log(err);
+            } else {
+                const decoded = jwt.verify(req.token, 'your-secret-key');
+                const meal = req.body;
+                const mealId = meal.id;
+                logger.info('Update meal');
+                logger.debug('id=', mealId);
+                //validate incoming user info
+                try {
+                    assert(typeof meal.id === 'number', 'id must be a number');
+                    assert(meal.cookId === decoded.userId, 'user is not authorized to update this meal');
+                    assert(typeof meal.name === 'string', 'name must be a string');
+                    assert(typeof meal.description === 'string', 'description must be a string');
+                    assert(typeof meal.price === 'number', 'price must be a number');
+                    assert(typeof meal.maxAmountOfParticipants === 'number', 'maxParticipants must be a number');
+                    assert(typeof meal.isActive === 'number', 'isActive must be a number');
+                    assert(typeof meal.isVega === 'number', 'isVega must be a number');
+                    assert(typeof meal.isVegan === 'number', 'isVegan must be a number');
+                    assert(typeof meal.isToTakeHome === 'number', 'isToTakeHome must be a number');
+                    assert(typeof meal.dateTime === 'string', 'dateTime must be a string');
+                    assert(typeof meal.imageUrl === 'string', 'imageUrl must be a string');
+                    assert(typeof meal.allergenes === 'string', 'allergenes must be a string');
 
-                        res.status(400).json({
-                            status: 400,
-                            message: err.message.toString(),
-                            data: jsonMeal
-                        });
+                } catch (err) {
+                    res.status(400).json({
+                        status: 400,
+                        message: err.message.toString(),
+                        data: meal
+                    });
+                }
+                const date = new Date()
+                    .toISOString()
+                    .slice(0, 19)
+                    .replace("T", " ");
+                allergenesString = meal.allergenes.toString();
+                const sqlStatement = "UPDATE `meal` SET `isActive`=?,`isVega`=?,`isVegan`=?,`isToTakeHome`=?,`maxAmountOfParticipants`=?,`price`=?,`imageUrl`=?,`cookId`=?,`updateDate`=?,`name`=?,`description`=?,`allergenes` =? WHERE id = ?";
+                pool.getConnection(function (err, conn) {
+                    // Do something with the connection
+                    if (err) {
+                        console.log('error', err);
+                        next('error: ' + err.message);
                     }
-                    if (results) {
-                        // logger.info('Found', results.length, 'results');
-                        res.status(200).json({
-                            statusCode: 200,
-                            message: 'meal update endpoint',
-                            data: results
+                    if (conn) {
+                        conn.query(sqlStatement, [
+                            meal.isActive,
+                            meal.isVega,
+                            meal.isVegan,
+                            meal.isToTakeHome,
+                            meal.maxAmountOfParticipants,
+                            meal.price,
+                            meal.imageUrl,
+                            decoded.userId,
+                            date,
+                            meal.name,
+                            meal.description,
+                            allergenesString,
+                            mealId,
+                        ], function (err, results, fields) {
+                            if (err) {
+                                res.status(400).json({
+                                    status: 400,
+                                    message: err.message.toString(),
+                                    data: meal
+                                });
+                            }
+                            if (results.affectedRows > 0) {
+                                console.log(results);
+                                console.log(meal.id);
+                                res.status(200).json({
+                                    statusCode: 200,
+                                    message: 'meal update endpoint',
+                                    data: results
+                                });
+                            } else if (results.affectedRows == 0) {
+                                res.status(404).json({
+                                    statusCode: 404,
+                                    message: 'meal not found',
+                                    data: results
+                                });
+                            }
                         });
+                        pool.releaseConnection(conn);
                     }
                 });
-                pool.releaseConnection(conn);
             }
         });
     },
@@ -167,7 +203,6 @@ const mealController = {
     getAllMeals: (req, res) => {
 
         let sqlStatement = "SELECT * FROM meal";
-
         pool.getConnection(function (err, conn) {
             // Do something with the connection
             if (err) {
@@ -200,17 +235,11 @@ const mealController = {
 
     //UC-304 opvragen maaltijd bij ID
     getMealWithId: (req, res) => {
-        const mealId = req.body.mealId;
-        console.log(mealId);
-
-        console.log(req.params.mealId);
+        const mealId = req.body.id;
         logger.info('Find meal');
         logger.debug('id=', mealId);
 
-
         const checkUserSql = 'SELECT * FROM meal WHERE id = ?';
-
-
         pool.getConnection((err, connection) => {
             if (err) throw err;
             connection.query(checkUserSql, [mealId], (err, results) => {
@@ -235,13 +264,12 @@ const mealController = {
                     connection.release();
                 }
             });
-
         });
-
     },
 
     //UC-305 verwijderen maaltijd
     deleteMeal: (req, res) => {
+        authenticateJWT(req, res); //check if user is logged in
         jwt.verify(req.token, 'your-secret-key', function (err, data) {
             if (err) {
                 res.sendStatus(403);
@@ -253,7 +281,20 @@ const mealController = {
                 logger.debug('id=', mealId);
                 logger.info('Delete meal');
 
+                //validate incoming user info
+                try {
+                    assert(typeof mealId === 'number', 'id must be a number');
+                } catch (err) {
+                    res.status(400).json({
+                        status: 400,
+                        message: err.message.toString(),
+                        data: mealId
+                    });
+                }
+
                 const sqlStatement = 'DELETE FROM meal WHERE id = ?';
+                const checkCooksql = 'SELECT * FROM meal WHERE id = ? ';
+                const decoded = jwt.verify(req.token, 'your-secret-key');
                 pool.getConnection(function (err, conn) {
                     // Do something with the connection
                     if (err) {
@@ -261,7 +302,7 @@ const mealController = {
                         next('error: ' + err.message);
                     }
                     if (conn) {
-                        conn.query(sqlStatement, [mealId], function (err, results, fields) {
+                        conn.query(checkCooksql, [mealId], function (err, results, fields) {
                             if (err) {
                                 logger.err(err.message);
                                 next({
@@ -269,23 +310,49 @@ const mealController = {
                                     message: err.message
                                 });
                             }
-                            if (results.affectedRows == 0) {
+                            if (results.length > 0) {
+                                const meal = results[0];
+
+                                if (meal.cookId == decoded.userId) {
+                                    conn.query(sqlStatement, [mealId], function (err, results, fields) {
+                                        if (err) {
+                                            logger.err(err.message);
+                                            next({
+                                                code: 409,
+                                                message: err.message
+                                            });
+                                        }
+                                        if (results.affectedRows == 0) {
+                                            res.status(404).json({
+                                                statusCode: 404,
+                                                message: 'meal not found',
+                                                data: mealId
+                                            });
+                                        }
+                                        if (results.affectedRows > 0) {
+                                            // logger.info('Found', results.length, 'results');
+                                            res.status(200).json({
+                                                statusCode: 200,
+                                                message: 'meal delete endpoint',
+                                                data: results
+                                            });
+                                        }
+                                    });
+                                } else {
+                                    res.status(403).json({
+                                        statusCode: 403,
+                                        message: 'user is not authorized to delete this meal',
+                                        data: mealId
+                                    });
+                                }
+                            } else {
                                 res.status(404).json({
                                     statusCode: 404,
                                     message: 'meal not found',
                                     data: mealId
                                 });
                             }
-                            if (results.affectedRows > 0) {
-                                // logger.info('Found', results.length, 'results');
-                                res.status(200).json({
-                                    statusCode: 200,
-                                    message: 'meal delete endpoint',
-                                    data: results
-                                });
-                            }
-
-                        });
+                        })
                         pool.releaseConnection(conn);
                     }
                 });

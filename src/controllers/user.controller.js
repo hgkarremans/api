@@ -257,6 +257,7 @@ const userController = {
         //validate incoming user info
 
         try {
+          
           assert(typeof user.id === 'number', 'id must be a number');
           assert(user.id == decoded.userId, 'id must be the same as the logged in user')
           assert(typeof user.firstName === 'string', 'firstName must be a string');
