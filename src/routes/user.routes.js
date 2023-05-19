@@ -10,7 +10,7 @@ router.post('', userController.createUser);
 router.get('', userController.getAllUsers);
 
 // UC-203 Opvragen van gebruikersprofiel
-router.get('', userController.getUserProfile); 
+router.get('/:profile', userController.getUserProfile); 
 
 // UC-204 User opvragen met userId
 router.get('/:userId', userController.getUserWithId);

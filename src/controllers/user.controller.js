@@ -184,13 +184,35 @@ const userController = {
   //uc 203
   // functie nog niet gerealiseerd
   getUserProfile: (req, res) => {
-
-    res.status(403).json({
-      statusCode: 403,
-      message: 'Functie nog niet gerealiseerd',
-      data: 'Not implemented'
-
+    authenticateJWT(req, res);  //check if user is logged in
+    jwt.verify(req.token, 'your-secret-key', function (err, data) {
+      if (err) {
+        res.sendStatus(403);
+        console.log(err);
+      } else { 
+        const decoded = jwt.verify(req.token, 'your-secret-key');
+        const checkUserSql = 'SELECT * FROM user INNER JOIN meal ON meal.cookId=user.id WHERE user.id=?';
+        logger.info('Find user');
+        logger.debug('Id=', decoded.userId);
+        pool.getConnection((err, connection) => {
+          if (err) throw err;
+          connection.query(checkUserSql, [decoded.userId], (err, results) => {
+            if (err) throw err;
+            if (results.length > 0) {
+              const user = results[0];
+              res.status(200).json({
+                statusCode: 200,
+                message: 'User profile endpoint',
+                data: user
+              });
+              connection.release();
+              return user;
+            } 
+          });
+        });
+      }
     });
+    
   },
 
   //UC-204
