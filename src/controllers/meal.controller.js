@@ -16,6 +16,7 @@ const mealController = {
                 console.log(err);
             } else {
                 const meal = req.body;
+                const emailRegex = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
                 let today = new Date();
                 console.log(meal);
                 let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
@@ -24,6 +25,14 @@ const mealController = {
                 logger.debug('Meal=', meal);
                 //validate incoming user info
                 try {
+                    assert(
+                        emailAdress != null,
+                        "Emailaddress must be provided in request"
+                    );
+                    assert(
+                        password != null,
+                        "Password must be provided in request"
+                    );
                     assert(typeof meal.name === 'string', 'name must be a string');
                     assert(typeof meal.description === 'string', 'description must be a string');
                     assert(typeof meal.price === 'number', 'price must be a number');
@@ -35,7 +44,7 @@ const mealController = {
                     assert(typeof meal.dateTime === 'string', 'dateTime must be a string');
                     assert(typeof meal.imageUrl === 'string', 'imageUrl must be a string');
                     assert(typeof meal.allergenes === 'string', 'allergenes must be a string');
-                    
+
                 } catch (err) {
                     res.status(400).json({
                         status: 400,
@@ -156,95 +165,77 @@ const mealController = {
 
     //UC-303 opvragen maaltijden
     getAllMeals: (req, res) => {
-        jwt.verify(req.token, 'your-secret-key', function (err, data) {
+
+        let sqlStatement = "SELECT * FROM meal";
+
+        pool.getConnection(function (err, conn) {
+            // Do something with the connection
             if (err) {
-                res.sendStatus(403);
-
-                console.log(err);
-            } else {
-                let sqlStatement = "SELECT * FROM meal";
-
-                pool.getConnection(function (err, conn) {
-                    // Do something with the connection
+                console.log('error', err);
+                next('error: ' + err.message);
+            }
+            if (conn) {
+                conn.query(sqlStatement, function (err, results, fields) {
                     if (err) {
-                        console.log('error', err);
-                        next('error: ' + err.message);
-                    }
-                    if (conn) {
-                        conn.query(sqlStatement, function (err, results, fields) {
-                            if (err) {
-                                logger.err(err.message);
-                                next({
-                                    code: 409,
-                                    message: err.message
-                                });
-                            }
-                            if (results) {
-                                // logger.info('Found', results.length, 'results');
-
-                                res.status(200).json({
-                                    statusCode: 200,
-                                    message: 'meal getAll endpoint',
-                                    data: results
-                                });
-                            }
+                        logger.err(err.message);
+                        next({
+                            code: 409,
+                            message: err.message
                         });
-                        pool.releaseConnection(conn);
+                    }
+                    if (results) {
+                        // logger.info('Found', results.length, 'results');
+
+                        res.status(200).json({
+                            statusCode: 200,
+                            message: 'meal getAll endpoint',
+                            data: results
+                        });
                     }
                 });
+                pool.releaseConnection(conn);
             }
-
         });
-
-
     },
 
     //UC-304 opvragen maaltijd bij ID
     getMealWithId: (req, res) => {
+        const mealId = req.body.mealId;
+        console.log(mealId);
 
-        jwt.verify(req.token, 'your-secret-key', function (err, data) {
-            if (err) {
-                res.sendStatus(403);
-                console.log(req.token);
-                console.log(err);
-            } else {
-                const mealId = req.body.mealId;
-                console.log(mealId);
-
-                console.log(req.params.mealId);
-                logger.info('Find meal');
-                logger.debug('id=', mealId);
+        console.log(req.params.mealId);
+        logger.info('Find meal');
+        logger.debug('id=', mealId);
 
 
-                const checkUserSql = 'SELECT * FROM meal WHERE id = ?';
+        const checkUserSql = 'SELECT * FROM meal WHERE id = ?';
 
 
-                pool.getConnection((err, connection) => {
-                    if (err) throw err;
-                    connection.query(checkUserSql, [mealId], (err, results) => {
-                        if (err) throw err;
-                        if (results.length > 0) {
-                            const user = results[0];
-                            res.status(200).json({
-                                statusCode: 200,
-                                message: 'meal id endpoint',
-                                data: user
-                            });
-                            connection.release();
-                            return user;
-                        } else {
-                            const error = new Error(`Meal with ID ${mealId} not found`);
-                            console.error(error);
-                            res.status(404).json({
-                                statusCode: 404,
-                                message: 'meal not found',
-                                data: mealId
-                            })
-                            connection.release();
-                        }
+        pool.getConnection((err, connection) => {
+            if (err) throw err;
+            connection.query(checkUserSql, [mealId], (err, results) => {
+                if (err) throw err;
+                if (results.length > 0) {
+                    const user = results[0];
+                    res.status(200).json({
+                        statusCode: 200,
+                        message: 'meal id endpoint',
+                        data: user
                     });
-                });
-            }
+                    connection.release();
+                    return user;
+                } else {
+                    const error = new Error(`Meal with ID ${mealId} not found`);
+                    console.error(error);
+                    res.status(404).json({
+                        statusCode: 404,
+                        message: 'meal not found',
+                        data: mealId
+                    })
+                    connection.release();
+                }
+            });
+
         });
 
     },

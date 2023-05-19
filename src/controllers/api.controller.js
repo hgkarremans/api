@@ -27,7 +27,7 @@ const apiController = {
             res.status(400).json({
                 status: 400,
                 message: err.message.toString(),
-                data: req.body
+                data: req
             });
             return;
         }

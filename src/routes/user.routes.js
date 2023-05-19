@@ -13,13 +13,13 @@ router.get('', userController.getAllUsers);
 router.get('', userController.getUserProfile); 
 
 // UC-204 User opvragen met userId
-router.get(':userId', userController.getUserWithId);
+router.get('/:userId', userController.getUserWithId);
 
 // UC-205 User wijzigen
-router.put(':userId', userController.updateUser);
+router.put('/:userId', userController.updateUser);
 
 // UC-206 User verwijderen
-router.delete(':userId', userController.deleteUser);
+router.delete('/:userId', userController.deleteUser);
 
 
 module.exports = router;
