@@ -7,8 +7,30 @@ const apiController = {
 
     //UC-101
     loginUser: async (req, res) => {
-        // Extract user login data from the request body
-        const { emailAdress, password } = req.body;
+
+        const { emailAdress, password} = req.body;
+        const emailRegex = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
+        // Validate incoming user login data
+        try {
+            assert(
+                emailAdress != null,
+                "emailaddress/password must be provided in request"
+              );
+              assert(
+                password != null,
+                "emailaddress/password must be provided in request"
+              );
+            assert(typeof emailAdress === 'string', 'emailAdress must be a string');
+            assert.match(emailAdress, emailRegex, "Email address must be valid");
+            assert(typeof password === 'string', 'password must be a string');
+        } catch (err) {
+            res.status(400).json({
+                status: 400,
+                message: err.message.toString(),
+                data: req.body
+            });
+            return;
+        }
         let sqlStatement = 'SELECT * FROM user WHERE emailAdress  = ? AND password = ?'
 
         pool.getConnection(function (err, conn) {
@@ -27,7 +49,10 @@ const apiController = {
                         });
                     }
                     if (results.length == 1) {
-                        const token = jwt.sign({ emailAdress }, 'your-secret-key');
+                        let user = results[0];
+                        let userId = user.id;
+                        const token = jwt.sign({emailAdress, userId}, 'your-secret-key', { expiresIn: '1h' });
+                        
                         res.status(200).json({
                             statusCode: 200,
                             message: 'User login endpoint',
