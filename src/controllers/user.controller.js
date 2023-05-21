@@ -6,7 +6,7 @@ const { type } = require('os');
 var jwt = require('jsonwebtoken');
 
 const authenticateJWT = (req, res) => {
-  const bearerHeader = req.headers["authorization"];
+  const bearerHeader = req.headers.authorization;
   if (typeof bearerHeader !== 'undefined') {
     const bearer = bearerHeader.split(" ");
     const bearerToken = bearer[1];
@@ -79,9 +79,6 @@ const userController = {
 
   //uc-202
   getAllUsers: (req, res, next) => {
-    logger.info('Get all users');
-    console.log(req.body);
-
 
     if (req.body.isActive == 0) {
       let sqlStatement = 'SELECT * FROM `user` WHERE isActive = 0';
@@ -182,14 +179,15 @@ const userController = {
   },
 
   //uc 203
-  // functie nog niet gerealiseerd, komt later
   getUserProfile: (req, res) => {
     authenticateJWT(req, res);  //check if user is logged in
     jwt.verify(req.token, 'your-secret-key', function (err, data) {
       if (err) {
+        console.log('Token in usermethod: '  + req.token);
         res.sendStatus(403);
         console.log(err);
-      } else { 
+      } else {
+        
         const decoded = jwt.verify(req.token, 'your-secret-key');
         const checkUserSql = 'SELECT * FROM user INNER JOIN meal ON meal.cookId=user.id WHERE user.id=?';
         logger.info('Find user');
@@ -206,21 +204,26 @@ const userController = {
                 data: user
               });
               connection.release();
-              return user;
-            } 
+              
+            } else {
+              res.status(200).json({
+                statusCode: 200,
+                message: 'User empty profile endpoint',
+                data: null
+              });
+              connection.release();
+            }
           });
         });
       }
     });
-    
+
   },
 
   //UC-204
   getUserWithId: (req, res) => {
-
+  
     const id = req.body.id;
-
-    logger.info('Find user');
     logger.debug('Id=', id);
 
     try {
@@ -251,7 +254,6 @@ const userController = {
           return user;
         } else {
           const error = new Error(`User with ID ${id} not found`);
-          console.error(error);
           res.status(404).json({
             statusCode: 404,
             message: 'User not found',
@@ -279,7 +281,7 @@ const userController = {
         //validate incoming user info
 
         try {
-          
+
           assert(typeof user.id === 'number', 'id must be a number');
           assert(user.id == decoded.userId, 'id must be the same as the logged in user')
           assert(typeof user.firstName === 'string', 'firstName must be a string');

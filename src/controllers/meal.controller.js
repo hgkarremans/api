@@ -8,13 +8,13 @@ var jwt = require('jsonwebtoken');
 const authenticateJWT = (req, res) => {
     const bearerHeader = req.headers["authorization"];
     if (typeof bearerHeader !== 'undefined') {
-        const bearer = bearerHeader.split(" ");
-        const bearerToken = bearer[1];
-        req.token = bearerToken;
+      const bearer = bearerHeader.split(" ");
+      const bearerToken = bearer[1];
+      req.token = bearerToken;
     } else {
-        res.sendStatus(403);
+      res.sendStatus(403);
     }
-};
+  };
 
 const mealController = {
 
@@ -29,7 +29,7 @@ const mealController = {
                 const meal = req.body;
                 const emailRegex = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
                 let today = new Date();
-                console.log(meal);
+
                 let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
 
                 // logger.info('Register user');
@@ -83,7 +83,7 @@ const mealController = {
                         ],
                             function (err, results, fields) {
                                 if (err) {
-                                    logger.err(err.message);
+                                    console.log(err);
                                     next({
                                         code: 409,
                                         message: err.message

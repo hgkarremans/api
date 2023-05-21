@@ -2,11 +2,13 @@ const logger = require('../util/utils').logger;
 const assert = require('assert');
 const pool = require('../util/mysql-db');
 var jwt = require('jsonwebtoken');
+require('dotenv').config();
+
 
 const apiController = {
 
     //UC-101
-    loginUser: async (req, res) => {
+    loginUser: (req, res) => {
 
         const { emailAdress, password} = req.body;
         const emailRegex = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
@@ -14,11 +16,11 @@ const apiController = {
         try {
             assert(
                 emailAdress != null,
-                "emailaddress/password must be provided in request"
+                "emailaddress must be provided in request"
               );
               assert(
                 password != null,
-                "emailaddress/password must be provided in request"
+                "password must be provided in request"
               );
             assert(typeof emailAdress === 'string', 'emailAdress must be a string');
             assert.match(emailAdress, emailRegex, "Email address must be valid");
@@ -51,12 +53,12 @@ const apiController = {
                     if (results.length == 1) {
                         let user = results[0];
                         let userId = user.id;
-                        const token = jwt.sign({emailAdress, userId}, 'your-secret-key', { expiresIn: '1h' });
+                        const token = jwt.sign({userId}, 'your-secret-key');
                         
                         res.status(200).json({
                             statusCode: 200,
                             message: 'User login endpoint',
-                            data: "Token: " + token
+                            data: token
                         });
                     }
                     if (results.length == 0) {
