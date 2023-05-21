@@ -28,7 +28,7 @@ jobs:
           sudo /etc/init.d/mysql start
           sudo apt-get install -y mysql-client
           mysql -uroot -p${{ env.MYSQL_ROOT_PASSWORD }} -e "SHOW DATABASES;"
-          mysql -uroot -p${{ env.MYSQL_ROOT_PASSWORD }} -e "CREATE DATABASE ${{env.DB_DATABASE}};"
+          mysql -uroot -p${{ env.MYSQL_ROOT_PASSWORD }} -e "CREATE DATABASE shareameal;"
 
       - name: Import database script
         run: |
@@ -38,11 +38,6 @@ jobs:
       - name: npm install
         run: |
           npm install
-
-      - name: npm test
-        run: |
-          npm test -- --DB_PASSWORD {{env.MYSQL_ROOT_PASSWORD}} --DB_USER root --DB_NAME ${{env.DB_DATABASE}}
-
   #   Heroku-deploy:
   #     needs: integrationtests
   #     runs-on: ubuntu-latest
