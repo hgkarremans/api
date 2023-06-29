@@ -9,6 +9,7 @@ const request = require('supertest');
 const expect = chai.expect;
 const pool = require('../src/util/mysql-db');
 const jwt = require("jsonwebtoken");
+const exp = require('constants');
 
 const RESET_INDEX_USER = "ALTER TABLE user AUTO_INCREMENT = 1;";
 const RESET_INDEX_MEAL = "ALTER TABLE meal AUTO_INCREMENT = 1;";
@@ -16,10 +17,24 @@ const CLEAR_MEAL_TABLE = 'DELETE IGNORE FROM meal';
 const CLEAR_USER_TABLE = 'DELETE FROM user';
 const CLEAR_PARTICIPANTS_TABLE = 'DELETE IGNORE FROM meal_participants_user';
 const CLEAR_DB =
-    CLEAR_MEAL_TABLE + CLEAR_PARTICIPANTS_TABLE + CLEAR_USER_TABLE;
-const INSERT_MEAL = 'INSERT INTO `meal` (isActive, isVega, isVegan, isToTakeHome, dateTime, maxAmountOfParticipants, price, imageUrl, name, description, allergenes, cookId) VALUES (1, 0, 0, 1, "2022-03-22 16:35:00", 4, 12.75, "https://miljuschka.nl/wp-content/uploads/2021/02/Pasta-bolognese-3-2.jpg", "Pasta Bolognese met tomaat, spekjes en kaas", "Een heerlijke klassieker! Altijd goed voor tevreden gesmikkel!", "gluten, lactose", 1)'
+    'DELETE IGNORE FROM `meal`; DELETE IGNORE FROM `meal_participants_user`; DELETE IGNORE FROM `user`;'
+const INSERT_MEAL = 'INSERT INTO `meal` (`id`, `name`, `description`, `imageUrl`, `dateTime`, `maxAmountOfParticipants`, `price`, `cookId`) VALUES' +
+    "(1, 'Kaas', 'Oude Kaas', 'www.kaas.com', NOW(), 2, 3.10, 1);"
+const INSERT_MEAL2 = 'INSERT INTO `meal` (`id`, `name`, `description`, `imageUrl`, `dateTime`, `maxAmountOfParticipants`, `price`, `cookId`) VALUES' +
+    "(2, 'Kaas', 'Oude Kaas', 'www.kaas.com', NOW(), 2, 3.10, 2);"
 const INSERT_USER =
     'INSERT INTO user (firstName, lastName, isActive, emailAdress, password, phoneNumber, roles, street, city) VALUES ("Karel", "Ronaldo", 1, "ronaldo@gmail.com", "secret", "0618128342", "member", "meilustweg", "BOZ")'
+
+const INSERT_USERS =
+    'INSERT INTO `user` (`id`, `firstName`, `lastName`, `emailAdress`, `password`, `street`, `city` ) VALUES' +
+    '(1, "Klaas", "Klaassen", "existing@gmail.com", "secret", "Teststraat 23", "Rotterdam");' +
+    'INSERT INTO `user` (`id`, `firstName`, `lastName`, `emailAdress`, `password`, `street`, `city` ) VALUES' +
+    '(2, "Jan", "Pieter", "existing2@gmail.com", "secret", "Teststraat 23", "Rotterdam");' +
+    'INSERT INTO `user` (`id`, `firstName`, `lastName`, `emailAdress`, `password`, `street`, `city`, `isActive` ) VALUES' +
+    '(3, "Hans", "Hansen", "existing3@gmail.com", "secret", "Teststraat 23", "Rotterdam", false);' +
+    'INSERT INTO `user` (`id`, `firstName`, `lastName`, `emailAdress`, `password`, `street`, `city`, `isActive` ) VALUES' +
+    '(4, "Bert", "Bertus", "existing4@gmail.com", "secret", "Teststraat 23", "Rotterdam", false);'
+
 
 let generatedToken = '';
 let userId = 1;
@@ -31,7 +46,7 @@ jwt.sign({ userId }, 'your-secret-key', { expiresIn: "1y" }, (err, token) => {
 });
 
 describe('UC-301 creeren van maaltijd', () => {
-    before((done) => {
+    beforeEach((done) => {
         pool.getConnection(function (err, conn) {
             // Do something with the connection
             if (err) {
@@ -39,97 +54,25 @@ describe('UC-301 creeren van maaltijd', () => {
                 next('error: ' + err.message);
             }
             if (conn) {
-                conn.query(CLEAR_MEAL_TABLE, function (err, results, fields) {
+                conn.query(CLEAR_DB, function (err, results, fields) {
                     if (err) {
+                        console.log('test', err);
                         console.log(err);
                         next();
                     }
                     if (results) {
-                        done();
-                    }
-                });
-                pool.releaseConnection(conn);
-            }
-        });
-    });
-    before((done) => {
-        pool.getConnection(function (err, conn) {
-            // Do something with the connection
-            if (err) {
-                console.log('error', err);
-                next('error: ' + err.message);
-            }
-            if (conn) {
-                conn.query(CLEAR_USER_TABLE, function (err, results, fields) {
-                    if (err) {
-                        console.log(err);
-                        next();
-                    }
-                    if (results) {
-                        done();
-                    }
-                });
-                pool.releaseConnection(conn);
-            }
-        });
-    });
-    before((done) => {
-        pool.getConnection(function (err, conn) {
-            // Do something with the connection
-            if (err) {
-                console.log('error', err);
-                next('error: ' + err.message);
-            }
-            if (conn) {
-                conn.query(RESET_INDEX_MEAL, function (err, results, fields) {
-                    if (err) {
-                        console.log(err);
-                        next();
-                    }
-                    if (results) {
-                        done();
-                    }
-                });
-                pool.releaseConnection(conn);
-            }
-        });
-    });
-    before((done) => {
-        pool.getConnection(function (err, conn) {
-            // Do something with the connection
-            if (err) {
-                console.log('error', err);
-                next('error: ' + err.message);
-            }
-            if (conn) {
-                conn.query(RESET_INDEX_USER, function (err, results, fields) {
-                    if (err) {
-                        console.log(err);
-                        next();
-                    }
-                    if (results) {
-                        done();
-                    }
-                });
-                pool.releaseConnection(conn);
-            }
-        });
-    });
-    before((done) => {
-        pool.getConnection(function (err, conn) {
-            // Do something with the connection
-            if (err) {
-                console.log('error', err);
-                next('error: ' + err.message);
-            }
-            if (conn) {
-                conn.query(INSERT_USER, function (err, results, fields) {
-                    if (err) {
-                        console.log(err);
-                        next();
-                    }
-                    if (results) {
-                        done();
+
+                        conn.query(INSERT_USERS, INSERT_MEAL, function (err, results, fields) {
+                            if (err) {
+                                console.log('we here arent we')
+                                console.log(err);
+                                logger.err(err.message);
+                                next();
+                            }
+                            if (results) {
+                                done();
+                            }
+                        });
                     }
                 });
                 pool.releaseConnection(conn);
@@ -137,7 +80,9 @@ describe('UC-301 creeren van maaltijd', () => {
         });
     });
 
-    it('should create a meal', (done) => {
+
+
+    it('TC-301-1 - should create a meal', (done) => {
         request(server)
             .post('/api/meal')
             .set('Authorization', 'Bearer ' + generatedToken)
@@ -161,7 +106,7 @@ describe('UC-301 creeren van maaltijd', () => {
             });
     }
     );
-    it('should not create meal without isActive', (done) => {
+    it('TC-301-2 - should not create meal without isActive', (done) => {
         request(server)
             .post('/api/meal')
             .set('Authorization', 'Bearer ' + generatedToken)
@@ -185,7 +130,7 @@ describe('UC-301 creeren van maaltijd', () => {
             });
     }
     );
-    it('should not create meal without isVega', (done) => {
+    it('TC-301-3 - should not create meal without isVega', (done) => {
         request(server)
             .post('/api/meal')
             .set('Authorization', 'Bearer ' + generatedToken)
@@ -208,7 +153,7 @@ describe('UC-301 creeren van maaltijd', () => {
             });
     }
     );
-    it('should not create meal without isVegan', (done) => {
+    it('TC-301-4 - should not create meal without isVegan', (done) => {
         request(server)
             .post('/api/meal')
             .set('Authorization', 'Bearer ' + generatedToken)
@@ -232,7 +177,7 @@ describe('UC-301 creeren van maaltijd', () => {
             });
     }
     );
-    it('should not create meal without isToTakeHome', (done) => {
+    it('TC-301-5 - should not create meal without isToTakeHome', (done) => {
         request(server)
             .post('/api/meal')
             .set('Authorization', 'Bearer ' + generatedToken)
@@ -256,7 +201,7 @@ describe('UC-301 creeren van maaltijd', () => {
             });
     }
     );
-    it('should not create meal without maxAmountOfParticipants', (done) => {
+    it('TC-301-6 - should not create meal without maxAmountOfParticipants', (done) => {
         request(server)
             .post('/api/meal')
             .set('Authorization', 'Bearer ' + generatedToken)
@@ -280,7 +225,7 @@ describe('UC-301 creeren van maaltijd', () => {
             });
     }
     );
-    it('should not create meal without price', (done) => {
+    it('TC-301-7 - should not create meal without price', (done) => {
         request(server)
             .post('/api/meal')
             .set('Authorization', 'Bearer ' + generatedToken)
@@ -302,14 +247,13 @@ describe('UC-301 creeren van maaltijd', () => {
                 expect(res.body.message).to.equal('price must be a number');
                 done();
             });
-    }   
+    }
     );
 
 
 });
-//cannot sent headers after they are sent to the client
-describe.skip('UC-302 wijzigen van maaltijd', () => {
-    before((done) => {
+describe('UC-302 wijzigen van maaltijd', () => {
+    beforeEach((done) => {
         pool.getConnection(function (err, conn) {
             // Do something with the connection
             if (err) {
@@ -317,129 +261,49 @@ describe.skip('UC-302 wijzigen van maaltijd', () => {
                 next('error: ' + err.message);
             }
             if (conn) {
-                conn.query(CLEAR_MEAL_TABLE, function (err, results, fields) {
+                conn.query(CLEAR_DB, function (err, results, fields) {
                     if (err) {
                         console.log(err);
                         next();
                     }
                     if (results) {
-                        done();
-                    }
-                });
-                pool.releaseConnection(conn);
-            }
-        });
-    });
-    before((done) => {
-        pool.getConnection(function (err, conn) {
-            // Do something with the connection
-            if (err) {
-                console.log('error', err);
-                next('error: ' + err.message);
-            }
-            if (conn) {
-                conn.query(CLEAR_USER_TABLE, function (err, results, fields) {
-                    if (err) {
-                        console.log(err);
-                        next();
-                    }
-                    if (results) {
-                        done();
-                    }
-                });
-                pool.releaseConnection(conn);
-            }
-        });
-    });
-    before((done) => {
-        pool.getConnection(function (err, conn) {
-            // Do something with the connection
-            if (err) {
-                console.log('error', err);
-                next('error: ' + err.message);
-            }
-            if (conn) {
-                conn.query(RESET_INDEX_MEAL, function (err, results, fields) {
-                    if (err) {
-                        console.log(err);
-                        next();
-                    }
-                    if (results) {
-                        done();
-                    }
-                });
-                pool.releaseConnection(conn);
-            }
-        });
-    });
-    before((done) => {
-        pool.getConnection(function (err, conn) {
-            // Do something with the connection
-            if (err) {
-                console.log('error', err);
-                next('error: ' + err.message);
-            }
-            if (conn) {
-                conn.query(RESET_INDEX_USER, function (err, results, fields) {
-                    if (err) {
-                        console.log(err);
-                        next();
-                    }
-                    if (results) {
-                        done();
-                    }
-                });
-                pool.releaseConnection(conn);
-            }
-        });
-    });
-    before((done) => {
-        pool.getConnection(function (err, conn) {
-            // Do something with the connection
-            if (err) {
-                console.log('error', err);
-                next('error: ' + err.message);
-            }
-            if (conn) {
-                conn.query(INSERT_USER, function (err, results, fields) {
-                    if (err) {
-                        console.log(err);
-                        next();
-                    }
-                    if (results) {
-                        done();
-                    }
-                });
-                pool.releaseConnection(conn);
-            }
-        });
-    });
-    before((done) => {
-        pool.getConnection(function (err, conn) {
-            // Do something with the connection
-            if (err) {
-                console.log('error', err);
-                next('error: ' + err.message);
-            }
-            if (conn) {
-                conn.query(INSERT_MEAL, function (err, results, fields) {
-                    if (err) {
-                        console.log(err);
-                        next();
-                    }
-                    if (results) {
-                        done();
-                    }
-                });
-                pool.releaseConnection(conn);
-            }
-        });
-    });
-    
-    
 
+                        conn.query(INSERT_USERS, function (err, results, fields) {
+                            if (err) {
+                                console.log(err);
+                                logger.err(err.message);
+                                next();
+                            }
+                            if (results) {
+                                conn.query(INSERT_MEAL, function (err, results, fields) {
+                                    if (err) {
+                                        logger.err(err.message);
+                                        next();
+                                    }
+                                    if (results) {
+                                        conn.query(INSERT_MEAL2, function (err, results, fields) {
+                                            if (err) {
+                                                logger.err(err.message);
+                                                next();
+                                            }
+                                            if (results) {
+                                                done();
+                                            }
+                                        }
+                                        );
+                                    }
+                                }
+                                );
+                            }
+                        });
+                    }
+                });
+                pool.releaseConnection(conn);
+            }
+        });
+    });
 
-    it('should not update a meal', (done) => {
+    it('TC-302-1 - should update a meal', (done) => {
         request(server)
             .put('/api/meal/mealId')
             .set('Authorization', 'Bearer ' + generatedToken)
@@ -455,15 +319,331 @@ describe.skip('UC-302 wijzigen van maaltijd', () => {
                 imageUrl: "https://miljuschka.nl/wp-content/uploads/2021/02/Pasta-bolognese-3-2.jpg",
                 name: "Pasta Bolognese met tomaat, spekjes en kaas",
                 description: "Een heerlijke klassieker! Altijd goed voor tevreden gesmikkel!",
-                allergenes: "gluten, lactose"
+                allergenes: "gluten, lactose",
             })
             .end((err, res) => {
-                console.log(res.body);
+                expect(res).to.have.status(200);
+                expect(res.body.message).to.equal('meal update endpoint');
+                expect(res.body.data.affectedRows).to.equal(1);
+                done();
+            });
+    }
+    );
+    it('TC-302-2 - does not exist', (done) => {
+        request(server)
+            .put('/api/meal/mealId')
+            .set('Authorization', 'Bearer ' + generatedToken)
+            .send({
+                id: 500,
+                isActive: 1,
+                isVega: 0,
+                isVegan: 0,
+                isToTakeHome: 1,
+                dateTime: "2022-03-22T16:35:00.000Z",
+                maxAmountOfParticipants: 4,
+                price: 12.75,
+                imageUrl: "https://miljuschka.nl/wp-content/uploads/2021/02/Pasta-bolognese-3-2.jpg",
+                name: "Pasta Bolognese met tomaat, spekjes en kaas",
+                description: "Een heerlijke klassieker! Altijd goed voor tevreden gesmikkel!",
+                allergenes: "gluten, lactose",
+            })
+            .end((err, res) => {
+                expect(res).to.have.status(404);
+                expect(res.body.message).to.equal('meal not found');
+                expect(res.body.data.affectedRows).to.equal(0);
+                done();
+            });
+    }
+    );
+    it('TC-302-3 - should not update a meal because not allowed', (done) => {
+        request(server)
+            .put('/api/meal/mealId')
+            .set('Authorization', 'Bearer ' + generatedToken)
+            .send({
+                id: 2,
+                isActive: 1,
+                isVega: 0,
+                isVegan: 0,
+                isToTakeHome: 1,
+                dateTime: "2022-03-22T16:35:00.000Z",
+                maxAmountOfParticipants: 4,
+                price: 12.75,
+                imageUrl: "https://miljuschka.nl/wp-content/uploads/2021/02/Pasta-bolognese-3-2.jpg",
+                name: "Pasta Bolognese met tomaat, spekjes en kaas",
+                description: "Een heerlijke klassieker! Altijd goed voor tevreden gesmikkel!",
+                allergenes: "gluten, lactose",
+            })
+            .end((err, res) => {
                 expect(res).to.have.status(400);
                 expect(res.body.message).to.equal('user is not authorized to update this meal');
+                expect(res.body.data.id).to.equal(2);
+                expect(res.body.data.isActive).to.equal(1);
                 done();
             });
     }
     );
 });
-//geen tijd meer voor de rest van de tests
+describe('UC-303 opvragen van maaltijden', () => {
+    beforeEach((done) => {
+        pool.getConnection(function (err, conn) {
+            // Do something with the connection
+            if (err) {
+                console.log('error', err);
+                next('error: ' + err.message);
+            }
+            if (conn) {
+                conn.query(CLEAR_DB, function (err, results, fields) {
+                    if (err) {
+                        console.log(err);
+                        next();
+                    }
+                    if (results) {
+
+                        conn.query(INSERT_USERS, function (err, results, fields) {
+                            if (err) {
+                                console.log(err);
+                                logger.err(err.message);
+                                next();
+                            }
+                            if (results) {
+                                conn.query(INSERT_MEAL, function (err, results, fields) {
+                                    if (err) {
+                                        logger.err(err.message);
+                                        next();
+                                    }
+                                    if (results) {
+                                        conn.query(INSERT_MEAL2, function (err, results, fields) {
+                                            if (err) {
+                                                logger.err(err.message);
+                                                next();
+                                            }
+                                            if (results) {
+                                                done();
+                                            }
+                                        }
+                                        );
+                                    }
+                                }
+                                );
+                            }
+                        });
+                    }
+                });
+                pool.releaseConnection(conn);
+            }
+        });
+    });
+    it('TC-303-1 - should get all meals', (done) => {
+        request(server)
+            .get('/api/meal')
+            .set('Authorization', 'Bearer ' + generatedToken)
+            .end((err, res) => {
+                expect(res).to.have.status(200);
+                expect(res.body.message).to.equal('meal getAll endpoint');
+                expect(res.body.data.length).to.equal(2);
+                done();
+            });
+    }
+    );
+});
+describe('UC-304 opvragen van maaltijd bij ID', () => {
+    beforeEach((done) => {
+        pool.getConnection(function (err, conn) {
+            // Do something with the connection
+            if (err) {
+                console.log('error', err);
+                next('error: ' + err.message);
+            }
+            if (conn) {
+                conn.query(CLEAR_DB, function (err, results, fields) {
+                    if (err) {
+                        console.log(err);
+                        next();
+                    }
+                    if (results) {
+
+                        conn.query(INSERT_USERS, function (err, results, fields) {
+                            if (err) {
+                                console.log(err);
+                                logger.err(err.message);
+                                next();
+                            }
+                            if (results) {
+                                conn.query(INSERT_MEAL, function (err, results, fields) {
+                                    if (err) {
+                                        logger.err(err.message);
+                                        next();
+                                    }
+                                    if (results) {
+                                        conn.query(INSERT_MEAL2, function (err, results, fields) {
+                                            if (err) {
+                                                logger.err(err.message);
+                                                next();
+                                            }
+                                            if (results) {
+                                                done();
+                                            }
+                                        }
+                                        );
+                                    }
+                                }
+                                );
+                            }
+                        });
+                    }
+                });
+                pool.releaseConnection(conn);
+            }
+        });
+    });
+    it('TC-304-1 - should get meal with id 1', (done) => {
+        const int = {
+            "id": 1
+        }
+        request(server)
+            .get('/api/meal/mealId')
+            .set('Authorization', 'Bearer ' + generatedToken)
+            .send(int)
+            .end((err, res) => {
+                expect(res).to.have.status(200);
+                expect(res.body.message).to.equal('meal id endpoint');
+                expect(res.body.data.id).to.equal(1);
+                done();
+            });
+
+    }
+    );
+    it('TC-304-2 - should not get meal with id 500', (done) => {
+        const int = {
+            "id": 500
+        }
+        request(server)
+            .get('/api/meal/mealId')
+            .set('Authorization', 'Bearer ' + generatedToken)
+            .send(int)
+            .end((err, res) => {
+                expect(res).to.have.status(404);
+                expect(res.body.message).to.equal('meal not found');
+                expect(res.body.data).to.equal(500);
+                done();
+            });
+    }
+    );
+    it('TC-304-3 - should get meal with id 2', (done) => {
+        const int = {
+            "id": 2
+        }
+        request(server)
+            .get('/api/meal/mealId')
+            .set('Authorization', 'Bearer ' + generatedToken)
+            .send(int)
+            .end((err, res) => {
+                expect(res).to.have.status(200);
+                expect(res.body.message).to.equal('meal id endpoint');
+                expect(res.body.data.id).to.equal(2);
+                done();
+            });
+
+    }
+    ); 
+});
+describe.only('UC-305 verwijderen van maaltijd', () => {
+    beforeEach((done) => {
+        pool.getConnection(function (err, conn) {
+            // Do something with the connection
+            if (err) {
+                console.log('error', err);
+                next('error: ' + err.message);
+            }
+            if (conn) {
+                conn.query(CLEAR_DB, function (err, results, fields) {
+                    if (err) {
+                        console.log(err);
+                        next();
+                    }
+                    if (results) {
+
+                        conn.query(INSERT_USERS, function (err, results, fields) {
+                            if (err) {
+                                console.log(err);
+                                logger.err(err.message);
+                                next();
+                            }
+                            if (results) {
+                                conn.query(INSERT_MEAL, function (err, results, fields) {
+                                    if (err) {
+                                        logger.err(err.message);
+                                        next();
+                                    }
+                                    if (results) {
+                                        conn.query(INSERT_MEAL2, function (err, results, fields) {
+                                            if (err) {
+                                                logger.err(err.message);
+                                                next();
+                                            }
+                                            if (results) {
+                                                done();
+                                            }
+                                        }
+                                        );
+                                    }
+                                }
+                                );
+                            }
+                        });
+                    }
+                });
+                pool.releaseConnection(conn);
+            }
+        });
+    });
+    it('TC-305-1 - should delete meal with id 1', (done) => {
+        const int = {
+            "id": 1
+        }
+        request(server)
+            .delete('/api/meal/mealId')
+            .set('Authorization', 'Bearer ' + generatedToken)
+            .send(int)
+            .end((err, res) => {
+                expect(res).to.have.status(200);
+                expect(res.body.message).to.equal('meal delete endpoint');
+                expect(res.body.data.affectedRows).to.equal(1);
+                done();
+            });
+    }
+    );
+    it('TC-305-2 - should not delete meal with id 500', (done) => {
+        const int = {
+            "id": 500
+        }
+        request(server)
+            .delete('/api/meal/mealId')
+            .set('Authorization', 'Bearer ' + generatedToken)
+            .send(int)
+            .end((err, res) => {
+                expect(res).to.have.status(404);
+                expect(res.body.message).to.equal('meal not found');
+                expect(res.body.data).to.equal(500);
+                done();
+            });
+    }
+    );
+    it('TC-305-3 - should not delete meal with id 2 because not allowed', (done) => {
+        const int = {
+            "id": 2
+        }
+        request(server)
+            .delete('/api/meal/mealId')
+            .set('Authorization', 'Bearer ' + generatedToken)
+            .send(int)
+            .end((err, res) => {
+                expect(res).to.have.status(400);
+                expect(res.body.message).to.equal('user is not authorized to delete this meal');
+                expect(res.body.data).to.equal(2);""
+
+                done();
+            });
+    }
+    );
+});

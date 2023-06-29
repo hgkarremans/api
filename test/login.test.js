@@ -13,7 +13,7 @@ const jwt = require("jsonwebtoken");
 const CLEAR_USER_TABLE = 'DELETE IGNORE FROM user';
 
 const INSERT_USER =
-    'INSERT INTO user (firstName, lastName, isActive, emailAdress, password, phoneNumber, roles, street, city) VALUES ("Karel", "Ronaldo", 1, "ronaldo@gmail.com", "secret", "0618128342", "member", "meilustweg", "BOZ")';
+    'INSERT INTO user (firstName, lastName, isActive, emailAdress, password, phoneNumber, roles, street, city) VALUES ("Karel", "Ronaldo", 1, "ronaldo2@gmail.com", "secret", "0618128342", "member", "meilustweg", "BOZ")';
 
 
 describe('UC-101 inloggen', () => {

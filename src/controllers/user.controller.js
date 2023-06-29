@@ -21,10 +21,9 @@ const userController = {
   //UC-201
   createUser: (req, res) => {
     const user = req.body;
-
-    // logger.info('Register user');
+  
     logger.debug('User=', user);
-    //validate incoming user info
+  
     try {
       assert(typeof user.firstName === 'string', 'firstName must be a string');
       assert(typeof user.lastName === 'string', 'lastName must be a string');
@@ -35,47 +34,60 @@ const userController = {
       assert(typeof user.roles === 'string', 'roles must be a string');
       assert(typeof user.street === 'string', 'street must be a string');
       assert(typeof user.city === 'string', 'city must be a string');
-
     } catch (err) {
-      res.status(400).json({
+      return res.status(400).json({
         status: 400,
         message: err.message.toString(),
         data: user
       });
-      return;
     }
-
-    let sqlStatement = "INSERT INTO user (firstName, lastName, isActive, emailAdress, password, phoneNumber, roles, street, city) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    const checkEmailSql = 'SELECT COUNT(*) AS count FROM user WHERE emailAdress = ?'
-
-
+  
+    const sqlStatement = "INSERT INTO user (firstName, lastName, isActive, emailAdress, password, phoneNumber, roles, street, city) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    const checkEmailSql = 'SELECT COUNT(*) AS count FROM user WHERE emailAdress = ?';
+  
     pool.getConnection((err, connection) => {
       if (err) throw err;
-
-      // execute the check email SQL statement
+  
       connection.query(checkEmailSql, [user.emailAdress], (err, results) => {
-        if (err) throw err;
+        if (err) {
+          connection.release();
+          return res.status(500).json({
+            status: 500,
+            message: 'Internal Server Error',
+            data: user
+          });
+        }
+  
         const count = results[0].count;
         if (count === 0) {
           connection.query(sqlStatement, [user.firstName, user.lastName, user.isActive, user.emailAdress, user.password, user.phoneNumber, user.roles, user.street, user.city], (err, results) => {
-            if (err) throw err;
-            res.status(200).json({
+            connection.release();
+            if (err) {
+              return res.status(500).json({
+                status: 500,
+                message: 'Internal Server Error',
+                data: user
+              });
+            }
+            return res.status(200).json({
               statusCode: 200,
               message: 'User register endpoint',
               data: user
             });
           });
         } else {
-          res.status(400).json({
+          connection.release();
+          return res.status(400).json({
             statusCode: 400,
             message: 'Email already exists',
             data: user
           });
         }
-        connection.release();
       });
     });
   },
+  
+  
 
   //uc-202
   getAllUsers: (req, res, next) => {

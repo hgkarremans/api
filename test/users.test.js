@@ -23,7 +23,7 @@ const CLEAR_DB =
 'DELETE IGNORE FROM meal; DELETE IGNORE FROM meal_participants_user; DELETE IGNORE FROM user;'
 
 const INSERT_USER =
-    'INSERT INTO user (firstName, lastName, isActive, emailAdress, password, phoneNumber, roles, street, city) VALUES ("Karel", "Ronaldo", 1, "ronaldo@gmail.com", "secret", "0618128342", "member", "meilustweg", "BOZ")'
+    'INSERT INTO user (firstName, lastName, isActive, emailAdress, password, phoneNumber, roles, street, city) VALUES ("Karel", "Ronaldo", 1, "ronald1o@gmail.com", "secret", "0618128342", "member", "meilustweg", "BOZ")'
 const INSERT_USER2 = 'INSERT INTO user (firstName, lastName, isActive, emailAdress, password, phoneNumber, roles, street, city) VALUES ("Karel", "Ronaldo", 1, "hg.karremans@gmail.com", "secret", "0618128342", "member", "meilustweg", "BOZ")'
 
 const INSERT_USERS =
@@ -40,41 +40,50 @@ let userId = 1;
 jwt.sign({ userId }, 'your-secret-key', { expiresIn: "1y" }, (err, token) => {
     if (err) console.log(err);
     generatedToken = token;
-    console.log(generatedToken);
+    // console.log(generatedToken);
 
 });
 
 describe('UC-201 Registreren als nieuwe user', () => {
     beforeEach((done) => {
+        let hasError = false; // Track if an error has occurred
+      
         pool.getConnection(function (err, conn) {
-            // Do something with the connection
+          if (err) {
+            console.log('error', err);
+            hasError = true;
+            return done('error: ' + err.message);
+          }
+      
+          conn.query(CLEAR_USER_TABLE, RESET_INDEX, function (err, results, fields) {
             if (err) {
-                console.log('error', err);
-                next('error: ' + err.message);
+              console.log('test', err);
+              console.log(err);
+              conn.release();
+              hasError = true;
+              return done('error: ' + err.message);
             }
-            if (conn) {
-                conn.query(CLEAR_USER_TABLE, RESET_INDEX, function (err, results, fields) {
-                    if (err) {
-                        logger.err(err.message);
-                        next();
-                    }
-                    if (results) {
-                        // logger.info('Found', results.length, 'results');
-                        conn.query(INSERT_USER, function (err, results, fields) {
-                            if (err) {
-                                logger.err(err.message);
-                                next();
-                            }
-                            if (results) {
-                                done();
-                            }
-                        });
-                    }
-                });
-                pool.releaseConnection(conn);
-            }
+      
+            conn.query(INSERT_USER, function (err, results, fields) {
+              conn.release();
+              if (err) {
+                console.log('we here arent we');
+                console.log(err);
+                logger.err(err.message);
+                hasError = true;
+                return done('error: ' + err.message);
+              }
+      
+              if (!hasError) {
+                // Only call done() if no error occurred
+                return done();
+              }
+            });
+          });
         });
-    });
+      });
+      
+      
 
     it('TC-201-1 - Verplicht veld ontbreekt', (done) => {
         const newUser = {
@@ -293,7 +302,6 @@ describe('UC-202 Opvragen van overzicht van users', () => {
             });
     });
 });
-//timeout
 describe('UC-203 opvragen van gebruikersprofiel', () => {
 
     before((done) => {
@@ -370,7 +378,7 @@ describe('UC-203 opvragen van gebruikersprofiel', () => {
                 let { status, message, data } = res.body;
                 expect(res.body).to.be.an('object');
                 expect(res.body.statusCode).to.equal(200);
-                expect(message).to.be.a('string').that.contains('User empty profile endpoint');
+                expect(message).to.be.a('string').that.contains('User profile endpoint');
                 done();
 
             });
@@ -617,9 +625,9 @@ describe('UC-205 Gebruikersinformatie wijzingen', () => {
             });
     });
 });
-//timeout
-describe.skip('UC-206 Verwijder de user met het opgegeven id', () => {
-    before((done) => {
+
+describe('UC-206 Verwijder de user met het opgegeven id', () => {
+    beforeEach((done) => {
         pool.getConnection(function (err, conn) {
             // Do something with the connection
             if (err) {
@@ -627,61 +635,32 @@ describe.skip('UC-206 Verwijder de user met het opgegeven id', () => {
                 next('error: ' + err.message);
             }
             if (conn) {
-                conn.query(CLEAR_USER_TABLE, function (err, results, fields) {
+                conn.query(CLEAR_USER_TABLE, RESET_INDEX, function (err, results, fields) {
                     if (err) {
+                        console.log('test', err);
                         console.log(err);
                         next();
                     }
                     if (results) {
-                        done();
+                      
+                        conn.query(INSERT_USERS, function (err, results, fields) {
+                            if (err) {
+                                console.log('we here arent we')
+                                console.log(err);
+                                logger.err(err.message);
+                                next();
+                            }
+                            if (results) {
+                                done();
+                            }
+                        });
                     }
                 });
                 pool.releaseConnection(conn);
             }
         });
     });
-    before((done) => {
-        pool.getConnection(function (err, conn) {
-            // Do something with the connection
-            if (err) {
-                console.log('error', err);
-                next('error: ' + err.message);
-            }
-            if (conn) {
-                conn.query(RESET_INDEX, function (err, results, fields) {
-                    if (err) {
-                        console.log(err);
-                        next();
-                    }
-                    if (results) {
-                        done();
-                    }
-                });
-                pool.releaseConnection(conn);
-            }
-        });
-    });
-    before((done) => {
-        pool.getConnection(function (err, conn) {
-            // Do something with the connection
-            if (err) {
-                console.log('error', err);
-                next('error: ' + err.message);
-            }
-            if (conn) {
-                conn.query(INSERT_USER, function (err, results, fields) {
-                    if (err) {
-                        console.log(err);
-                        next();
-                    }
-                    if (results) {
-                        done();
-                    }
-                });
-                pool.releaseConnection(conn);
-            }
-        });
-    });
+
     it('TC-206-1 - User succesvol opgevraagd', (done) => {
 
         const int = {
@@ -691,34 +670,31 @@ describe.skip('UC-206 Verwijder de user met het opgegeven id', () => {
             .request(server)
             .delete('/api/user/userId')
             .send(int)
-
+            .set('Authorization', `Bearer ${generatedToken}`)
             .end((err, res) => {
                 assert(err === null);
                 let { status, message, data } = res.body;
-                console.log(res.body);
-                expect(res.body).to.be.an('object');
                 expect(res.body.statusCode).to.equal(200);
                 expect(message).to.be.a('string').that.contains('User delete endpoint');
-                expect(data).to.be.an('object');
-                expect(data.id).to.equal(1);
+                expect(data).to.equal(1);
                 done();
             });
     });
-    it('TC-206-2 - User bestaat niet', (done) => {
+    it('TC-206-2 - User niet hetzelfde als ingelogde user', (done) => {
         const int = {
             id: 1000
         }
         chai
             .request(server)
-            .delete('/api/users/delete')
+            .delete('/api/user/userId')
             .send(int)
-
+            .set('Authorization', `Bearer ${generatedToken}`)
             .end((err, res) => {
                 assert(err === null);
                 let { status, message, data } = res.body;
                 expect(res.body).to.be.an('object');
-                expect(res.body.statusCode).to.equal(404);
-                expect(message).to.be.a('string').that.contains('User not found');
+                expect(res.body.status).to.equal(400);
+                expect(message).to.be.a('string').that.contains('id must be the same as the logged in user');
                 done();
             });
     });
