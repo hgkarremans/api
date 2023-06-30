@@ -378,7 +378,7 @@ describe('UC-203 opvragen van gebruikersprofiel', () => {
                 let { status, message, data } = res.body;
                 expect(res.body).to.be.an('object');
                 expect(res.body.statusCode).to.equal(200);
-                expect(message).to.be.a('string').that.contains('User profile endpoint');
+                expect(message).to.be.a('string').that.contains('User empty profile endpoint');
                 done();
 
             });

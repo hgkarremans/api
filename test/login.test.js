@@ -9,6 +9,7 @@ const request = require('supertest');
 const expect = chai.expect;
 const pool = require('../src/util/mysql-db');
 const jwt = require("jsonwebtoken");
+const exp = require('constants');
 
 const CLEAR_USER_TABLE = 'DELETE IGNORE FROM user';
 
@@ -16,7 +17,7 @@ const INSERT_USER =
     'INSERT INTO user (firstName, lastName, isActive, emailAdress, password, phoneNumber, roles, street, city) VALUES ("Karel", "Ronaldo", 1, "ronaldo2@gmail.com", "secret", "0618128342", "member", "meilustweg", "BOZ")';
 
 
-describe('UC-101 inloggen', () => {
+describe.only('UC-101 inloggen', () => {
         beforeEach((done) => {
             pool.getConnection(function (err, conn) {
                 // Do something with the connection
@@ -50,7 +51,7 @@ describe('UC-101 inloggen', () => {
     });
     it('TC-101-1 login met fout email', (done) => {
         const user = {
-            emailAdress: 'ronaldogmail.com',
+            emailAdress: 'ronaldogmai',
             password: 'secret'
         };
         chai
@@ -58,8 +59,39 @@ describe('UC-101 inloggen', () => {
             .post('/api/login')
             .send(user)
             .end((err, res) => {
+                expect(res).to.have.status(400);
+                expect(res.body.message).to.equal('Email address must be valid');
+                done();
+            });
+    });
 
-
+    it('TC-101-2 login zonder wachtwoord', (done) => {
+        const user = {
+            emailAdress: 'ronaldogmai',
+            
+        };
+        chai
+            .request(server)
+            .post('/api/login')
+            .send(user)
+            .end((err, res) => {
+                expect(res).to.have.status(400);
+                expect(res.body.message).to.equal('password must be provided in request');
+                done();
+            });
+    });
+    it('TC-101-3 login zonder wachtwoord', (done) => {
+        const user = {
+            emailAdress: 'ronaldogmai',
+            
+        };
+        chai
+            .request(server)
+            .post('/api/login')
+            .send(user)
+            .end((err, res) => {
+                expect(res).to.have.status(400);
+                expect(res.body.message).to.equal('password must be provided in request');
                 done();
             });
     });

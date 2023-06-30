@@ -17,23 +17,26 @@ const CLEAR_MEAL_TABLE = 'DELETE IGNORE FROM meal';
 const CLEAR_USER_TABLE = 'DELETE FROM user';
 const CLEAR_PARTICIPANTS_TABLE = 'DELETE IGNORE FROM meal_participants_user';
 const CLEAR_DB =
-    'DELETE IGNORE FROM `meal`; DELETE IGNORE FROM `meal_participants_user`; DELETE IGNORE FROM `user`;'
-const INSERT_MEAL = 'INSERT INTO `meal` (`id`, `name`, `description`, `imageUrl`, `dateTime`, `maxAmountOfParticipants`, `price`, `cookId`) VALUES' +
-    "(1, 'Kaas', 'Oude Kaas', 'www.kaas.com', NOW(), 2, 3.10, 1);"
-const INSERT_MEAL2 = 'INSERT INTO `meal` (`id`, `name`, `description`, `imageUrl`, `dateTime`, `maxAmountOfParticipants`, `price`, `cookId`) VALUES' +
-    "(2, 'Kaas', 'Oude Kaas', 'www.kaas.com', NOW(), 2, 3.10, 2);"
+    'SET FOREIGN_KEY_CHECKS = 0; DELETE IGNORE FROM `meal`; DELETE IGNORE FROM `meal_participants_user`; DELETE IGNORE FROM `user`; SET FOREIGN_KEY_CHECKS = 1;'
 const INSERT_USER =
     'INSERT INTO user (firstName, lastName, isActive, emailAdress, password, phoneNumber, roles, street, city) VALUES ("Karel", "Ronaldo", 1, "ronaldo@gmail.com", "secret", "0618128342", "member", "meilustweg", "BOZ")'
 
+const INSERT_MEAL = 'INSERT INTO `meal` (`id`, `name`, `description`, `imageUrl`, `dateTime`, `maxAmountOfParticipants`, `price`, `cookId`) VALUES ' +
+    "(1, 'Kaas', 'Oude Kaas', 'www.kaas.com', NOW(), 2, 3.10, 1);";
+
+const INSERT_MEAL2 = 'INSERT INTO `meal` (`id`, `name`, `description`, `imageUrl`, `dateTime`, `maxAmountOfParticipants`, `price`, `cookId`) VALUES ' +
+    "(2, 'Kaas', 'Oude Kaas', 'www.kaas.com', NOW(), 2, 3.10, 2);";
+
 const INSERT_USERS =
-    'INSERT INTO `user` (`id`, `firstName`, `lastName`, `emailAdress`, `password`, `street`, `city` ) VALUES' +
-    '(1, "Klaas", "Klaassen", "existing@gmail.com", "secret", "Teststraat 23", "Rotterdam");' +
-    'INSERT INTO `user` (`id`, `firstName`, `lastName`, `emailAdress`, `password`, `street`, `city` ) VALUES' +
-    '(2, "Jan", "Pieter", "existing2@gmail.com", "secret", "Teststraat 23", "Rotterdam");' +
-    'INSERT INTO `user` (`id`, `firstName`, `lastName`, `emailAdress`, `password`, `street`, `city`, `isActive` ) VALUES' +
-    '(3, "Hans", "Hansen", "existing3@gmail.com", "secret", "Teststraat 23", "Rotterdam", false);' +
-    'INSERT INTO `user` (`id`, `firstName`, `lastName`, `emailAdress`, `password`, `street`, `city`, `isActive` ) VALUES' +
+    'INSERT INTO `user` (`id`, `firstName`, `lastName`, `emailAdress`, `password`, `street`, `city`) VALUES ' +
+    '(1, "Klaas", "Klaassen", "existing2@gmail.com", "secret", "Teststraat 23", "Rotterdam"), ' +
+    '(2, "Jan", "Pieter", "existing3@gmail.com", "secret", "Teststraat 23", "Rotterdam");';
+
+const INSERT_USERS3 = 'INSERT INTO `user` (`id`, `firstName`, `lastName`, `emailAdress`, `password`, `street`, `city`, `isActive` ) VALUES' +
+    '(3, "Hans", "Hansen", "existing3@gmail.com", "secret", "Teststraat 23", "Rotterdam", false);'
+const INSERT_USERS4 = 'INSERT INTO `user` (`id`, `firstName`, `lastName`, `emailAdress`, `password`, `street`, `city`, `isActive` ) VALUES' +
     '(4, "Bert", "Bertus", "existing4@gmail.com", "secret", "Teststraat 23", "Rotterdam", false);'
+
 
 
 let generatedToken = '';
@@ -277,12 +280,14 @@ describe('UC-302 wijzigen van maaltijd', () => {
                             if (results) {
                                 conn.query(INSERT_MEAL, function (err, results, fields) {
                                     if (err) {
+                                        console.log(err);
                                         logger.err(err.message);
                                         next();
                                     }
                                     if (results) {
                                         conn.query(INSERT_MEAL2, function (err, results, fields) {
                                             if (err) {
+                                                console.log('we here now' + err);
                                                 logger.err(err.message);
                                                 next();
                                             }
@@ -545,9 +550,9 @@ describe('UC-304 opvragen van maaltijd bij ID', () => {
             });
 
     }
-    ); 
+    );
 });
-describe.only('UC-305 verwijderen van maaltijd', () => {
+describe('UC-305 verwijderen van maaltijd', () => {
     beforeEach((done) => {
         pool.getConnection(function (err, conn) {
             // Do something with the connection
@@ -640,7 +645,7 @@ describe.only('UC-305 verwijderen van maaltijd', () => {
             .end((err, res) => {
                 expect(res).to.have.status(400);
                 expect(res.body.message).to.equal('user is not authorized to delete this meal');
-                expect(res.body.data).to.equal(2);""
+                expect(res.body.data).to.equal(2); ""
 
                 done();
             });

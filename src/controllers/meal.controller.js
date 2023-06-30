@@ -226,27 +226,23 @@ const mealController = {
       },
       
     //UC-303 opvragen maaltijden
-    getAllMeals: (req, res) => {
-
+    getAllMeals: (req, res, next) => {
         let sqlStatement = "SELECT * FROM meal";
         pool.getConnection(function (err, conn) {
-            // Do something with the connection
             if (err) {
                 console.log('error', err);
-                next('error: ' + err.message);
+                return next('error: ' + err.message);
             }
             if (conn) {
                 conn.query(sqlStatement, function (err, results, fields) {
                     if (err) {
                         logger.err(err.message);
-                        next({
+                        return next({
                             code: 409,
                             message: err.message
                         });
                     }
                     if (results) {
-                        // logger.info('Found', results.length, 'results');
-
                         res.status(200).json({
                             statusCode: 200,
                             message: 'meal getAll endpoint',
@@ -254,10 +250,11 @@ const mealController = {
                         });
                     }
                 });
-                pool.releaseConnection(conn);
+                conn.release(); // Release the connection back to the pool
             }
         });
     },
+    
 
     //UC-304 opvragen maaltijd bij ID
     getMealWithId: (req, res) => {
