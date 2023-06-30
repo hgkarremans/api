@@ -14,10 +14,10 @@ const exp = require('constants');
 const CLEAR_USER_TABLE = 'DELETE IGNORE FROM user';
 
 const INSERT_USER =
-    'INSERT INTO user (firstName, lastName, isActive, emailAdress, password, phoneNumber, roles, street, city) VALUES ("Karel", "Ronaldo", 1, "ronaldo2@gmail.com", "secret", "0618128342", "member", "meilustweg", "BOZ")';
+    'INSERT INTO user (firstName, lastName, isActive, emailAdress, password, phoneNumber, roles, street, city) VALUES ("Karel", "Ronaldo", 1, "ronaldo2334@gmail.com", "secret", "0618128342", "member", "meilustweg", "BOZ")';
 
 
-describe.only('UC-101 inloggen', () => {
+describe('UC-101 inloggen', () => {
         beforeEach((done) => {
             pool.getConnection(function (err, conn) {
                 // Do something with the connection
@@ -65,9 +65,10 @@ describe.only('UC-101 inloggen', () => {
             });
     });
 
-    it('TC-101-2 login zonder wachtwoord', (done) => {
+    it('TC-101-2 password as number', (done) => {
         const user = {
-            emailAdress: 'ronaldogmai',
+            emailAdress: 'ronaldo@gmail.com',
+            password: 1234
             
         };
         chai
@@ -76,7 +77,7 @@ describe.only('UC-101 inloggen', () => {
             .send(user)
             .end((err, res) => {
                 expect(res).to.have.status(400);
-                expect(res.body.message).to.equal('password must be provided in request');
+                expect(res.body.message).to.equal('password must be a string');
                 done();
             });
     });
@@ -95,6 +96,39 @@ describe.only('UC-101 inloggen', () => {
                 done();
             });
     });
+    it('TC-101-4 login zonder email', (done) => {
+        const user = {
+            password: 'secret'
+            
+        };
+        chai
+            .request(server)
+            .post('/api/login')
+            .send(user)
+            .end((err, res) => {
+                expect(res).to.have.status(400);
+                expect(res.body.message).to.equal('emailaddress must be provided in request');
+                done();
+            });
+    });
+    it('TC-101-5 geslaagde login', (done) => {
+        const user = {
+            emailAdress: 'ronaldo2334@gmail.com',
+            password: 'secret'
+            
+        };
+        chai
+            .request(server)
+            .post('/api/login')
+            .send(user)
+            .end((err, res) => {
+                expect(res).to.have.status(200);
+                expect(res.body.message).to.equal('User login endpoint');
+                expect(res.body.data).to.be.a('string');
+                done();
+            });
+    });
+
 });
 
 
