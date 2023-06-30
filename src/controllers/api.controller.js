@@ -40,6 +40,7 @@ const apiController = {
             conn.query(sqlStatement, [emailAdress, password], function (err, results, fields) {
               if (err) {
                 logger.err(err.message);
+                console.log(err);
                 res.status(409).json({
                   code: 409,
                   message: err.message,
