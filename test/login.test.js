@@ -18,37 +18,36 @@ const INSERT_USER =
 
 
 describe('UC-101 inloggen', () => {
-        beforeEach((done) => {
-            pool.getConnection(function (err, conn) {
-                // Do something with the connection
-                if (err) {
-                    console.log('error', err);
-                    next('error: ' + err.message);
-                }
-                if (conn) {
-                    conn.query(CLEAR_USER_TABLE, function (err, results, fields) {
-                        if (err) {
-                            logger.err(err.message);
-                            next();
-                        }
-                        if (results) {
-                            // logger.info('Found', results.length, 'results');
-                            conn.query(INSERT_USER, function (err, results, fields) {
-                                if (err) {
-                                    logger.err(err.message);
-                                    next();
-                                }
-                                if (results) {
-                                    done();
-                                }
-                            });
-                        }
-                    });
-                    pool.releaseConnection(conn);
-                }
-            });
-        
+    beforeEach((done) => {
+        pool.getConnection(function (err, conn) {
+            // Do something with the connection
+            if (err) {
+                console.log('error', err);
+                done('error: ' + err.message);
+            }
+            if (conn) {
+                conn.query(CLEAR_USER_TABLE, function (err, results, fields) {
+                    if (err) {
+                        console.error(err.message);
+                        done();
+                    }
+                    if (results) {
+                        conn.query(INSERT_USER, function (err, results, fields) {
+                            if (err) {
+                                console.error(err.message);
+                                done();
+                            }
+                            if (results) {
+                                done();
+                            }
+                        });
+                    }
+                });
+                pool.releaseConnection(conn);
+            }
+        });
     });
+
     it('TC-101-1 login met fout email', (done) => {
         const user = {
             emailAdress: 'ronaldogmai',
@@ -68,8 +67,7 @@ describe('UC-101 inloggen', () => {
     it('TC-101-2 password as number', (done) => {
         const user = {
             emailAdress: 'ronaldo@gmail.com',
-            password: 1234
-            
+            password: '1234'
         };
         chai
             .request(server)
@@ -81,10 +79,10 @@ describe('UC-101 inloggen', () => {
                 done();
             });
     });
+
     it('TC-101-3 login zonder wachtwoord', (done) => {
         const user = {
             emailAdress: 'ronaldogmai',
-            
         };
         chai
             .request(server)
@@ -96,10 +94,10 @@ describe('UC-101 inloggen', () => {
                 done();
             });
     });
+
     it('TC-101-4 login zonder email', (done) => {
         const user = {
             password: 'secret'
-            
         };
         chai
             .request(server)
@@ -111,11 +109,11 @@ describe('UC-101 inloggen', () => {
                 done();
             });
     });
+
     it('TC-101-5 geslaagde login', (done) => {
         const user = {
             emailAdress: 'ronaldo2334@gmail.com',
             password: 'secret'
-            
         };
         chai
             .request(server)
@@ -130,5 +128,3 @@ describe('UC-101 inloggen', () => {
     });
 
 });
-
-
