@@ -34,6 +34,7 @@ jobs:
         run: |
           mysql -uroot -p${{env.MYSQL_ROOT_PASSWORD}} ${{env.DB_DATABASE}} < share-a-meal.sql
           mysql -uroot -p${{env.MYSQL_ROOT_PASSWORD}} ${{env.DB_DATABASE}} -e "SHOW TABLES;"
+          mysql -uroot -p${{env.MYSQL_ROOT_PASSWORD}} ${{env.DB_DATABASE}} -e "SELECT * FROM meal;"
 
       - name: npm install
         run: |
