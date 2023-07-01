@@ -66,6 +66,8 @@ const userController = {
           connection.query(sqlStatement, [user.firstName, user.lastName, user.isActive, user.emailAdress, user.password, user.phoneNumber, user.roles, user.street, user.city], (err, results) => {
             connection.release();
             if (err) {
+              console.log(err);
+              logger.err(err.message);
               return res.status(500).json({
                 status: 500,
                 message: 'Internal Server Error',
