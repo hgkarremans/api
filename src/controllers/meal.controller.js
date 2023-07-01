@@ -227,6 +227,7 @@ const mealController = {
 
     //UC-303 opvragen maaltijden
     getAllMeals: (req, res, next) => {
+        console.log('get all meals');
         let sqlStatement = "SELECT * FROM meal";
         pool.getConnection(function (err, conn) {
             if (err) {
@@ -236,7 +237,7 @@ const mealController = {
             if (conn) {
                 conn.query(sqlStatement, function (err, results, fields) {
                     if (err) {
-                        logger.err(err.message);
+                        console.log(err);
                         return next({
                             code: 409,
                             message: err.message,
