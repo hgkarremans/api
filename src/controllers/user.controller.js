@@ -53,6 +53,7 @@ const userController = {
         if (err) {
           connection.release();
            console.log(err);
+           logger.err(err.message);
           return res.status(500).json({
             status: 500,
             message: 'Internal Server Error',
