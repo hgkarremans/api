@@ -4,6 +4,7 @@ const assert = require('assert');
 const pool = require('../util/mysql-db');
 const { type } = require('os');
 var jwt = require('jsonwebtoken');
+const { log } = require('console');
 
 const authenticateJWT = (req, res) => {
   const bearerHeader = req.headers.authorization;
@@ -51,6 +52,7 @@ const userController = {
       connection.query(checkEmailSql, [user.emailAdress], (err, results) => {
         if (err) {
           connection.release();
+           console.log(err);
           return res.status(500).json({
             status: 500,
             message: 'Internal Server Error',
