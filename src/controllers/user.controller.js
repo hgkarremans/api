@@ -32,7 +32,7 @@ const userController = {
       assert(typeof user.emailAdress === 'string', 'emailAdress must be a string');
       assert(typeof user.password === 'string', 'password must be a string');
       assert(typeof user.phoneNumber === 'string', 'phoneNumber must be a string');
-      assert(typeof user.roles === 'string', 'roles must be a string');
+      // assert(typeof user.roles === 'string', 'roles must be a string');
       assert(typeof user.street === 'string', 'street must be a string');
       assert(typeof user.city === 'string', 'city must be a string');
     } catch (err) {
@@ -42,8 +42,8 @@ const userController = {
         data: user
       });
     }
-  
-    const sqlStatement = "INSERT INTO user (firstName, lastName, isActive, emailAdress, password, phoneNumber, roles, street, city) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    //roles eruit gehaald
+    const sqlStatement = "INSERT INTO user (firstName, lastName, isActive, emailAdress, password, phoneNumber,  street, city) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
     const checkEmailSql = 'SELECT COUNT(*) AS count FROM user WHERE emailAdress = ?';
   
     pool.getConnection((err, connection) => {
@@ -67,7 +67,6 @@ const userController = {
             connection.release();
             if (err) {
               console.log(err);
-              logger.err(err.message);
               return res.status(500).json({
                 status: 500,
                 message: 'Internal Server Error',
