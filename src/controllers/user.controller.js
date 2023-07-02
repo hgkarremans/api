@@ -22,9 +22,9 @@ const userController = {
   //UC-201
   createUser: (req, res) => {
     const user = req.body;
-  
+
     logger.debug('User=', user);
-  
+
     try {
       assert(typeof user.firstName === 'string', 'firstName must be a string');
       assert(typeof user.lastName === 'string', 'lastName must be a string');
@@ -45,22 +45,22 @@ const userController = {
     //roles eruit gehaald
     const sqlStatement = "INSERT INTO user (firstName, lastName, isActive, emailAdress, password, phoneNumber,  street, city) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
     const checkEmailSql = 'SELECT COUNT(*) AS count FROM user WHERE emailAdress = ?';
-  
+
     pool.getConnection((err, connection) => {
       if (err) throw err;
-  
+
       connection.query(checkEmailSql, [user.emailAdress], (err, results) => {
         if (err) {
           connection.release();
-           console.log(err);
-           logger.err(err.message);
+          console.log(err);
+          logger.err(err.message);
           return res.status(500).json({
             status: 500,
             message: 'Internal Server Error',
             data: user
           });
         }
-  
+
         const count = results[0].count;
         if (count === 0) {
           connection.query(sqlStatement, [user.firstName, user.lastName, user.isActive, user.emailAdress, user.password, user.phoneNumber, user.roles, user.street, user.city], (err, results) => {
@@ -90,8 +90,8 @@ const userController = {
       });
     });
   },
-  
-  
+
+
 
   //uc-202
   getAllUsers: (req, res, next) => {
@@ -199,11 +199,11 @@ const userController = {
     authenticateJWT(req, res);  //check if user is logged in
     jwt.verify(req.token, 'your-secret-key', function (err, data) {
       if (err) {
-        console.log('Token in usermethod: '  + req.token);
+        console.log('Token in usermethod: ' + req.token);
         res.sendStatus(403);
         console.log(err);
       } else {
-        
+
         const decoded = jwt.verify(req.token, 'your-secret-key');
         const checkUserSql = 'SELECT * FROM user INNER JOIN meal ON meal.cookId=user.id WHERE user.id=?';
         logger.info('Find user');
@@ -220,7 +220,7 @@ const userController = {
                 data: user
               });
               connection.release();
-              
+
             } else {
               res.status(200).json({
                 statusCode: 200,
@@ -238,7 +238,7 @@ const userController = {
 
   //UC-204
   getUserWithId: (req, res) => {
-  
+
     const id = req.body.id;
     logger.debug('Id=', id);
 
@@ -379,14 +379,23 @@ const userController = {
             if (err) throw err;
             if (results.length > 0) {
               connection.query(sqlStatement, [id], (err, results) => {
-                if (err) throw err;
-                console.log(`User with ID ${id} deleted successfully`);
+                if (err) {
+                  res.status(400).json({
+                    status: 400,
+                    message: "User is cook, can't be deleted",
+                    data: err.message.toString()
+                  });
+                }
+                else {
 
-                res.status(200).json({
-                  statusCode: 200,
-                  message: 'User delete endpoint',
-                  data: id
-                });
+                  console.log(`User with ID ${id} deleted successfully`);
+
+                  res.status(200).json({
+                    statusCode: 200,
+                    message: 'User delete endpoint',
+                    data: id
+                  });
+                }
                 connection.release();
               });
             } else {

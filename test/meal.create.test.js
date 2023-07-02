@@ -348,33 +348,7 @@ jwt.sign({ userId }, 'your-secret-key', { expiresIn: "1y" }, (err, token) => {
                 });
         }
         );
-        // it('TC-302-3 - should not update a meal because not allowed', (done) => {
-        //     request(server)
-        //         .put('/api/meal/mealId')
-        //         .set('Authorization', 'Bearer ' + generatedToken)
-        //         .send({
-        //             id: 2,
-        //             isActive: 1,
-        //             isVega: 0,
-        //             isVegan: 0,
-        //             isToTakeHome: 1,
-        //             dateTime: "2022-03-22T16:35:00.000Z",
-        //             maxAmountOfParticipants: 4,
-        //             price: 12.75,
-        //             imageUrl: "https://miljuschka.nl/wp-content/uploads/2021/02/Pasta-bolognese-3-2.jpg",
-        //             name: "Pasta Bolognese met tomaat, spekjes en kaas",
-        //             description: "Een heerlijke klassieker! Altijd goed voor tevreden gesmikkel!",
-        //             allergenes: "gluten, lactose",
-        //         })
-        //         .end((err, res) => {
-        //             expect(res).to.have.status(400);
-        //             expect(res.body.message).to.equal('user is not authorized to update this meal');
-        //             expect(res.body.data.id).to.equal(2);
-        //             expect(res.body.data.isActive).to.equal(1);
-        //             done();
-        //         });
-        // }
-        // );
+        
     });
     describe('UC-303 opvragen van maaltijden', () => {
         beforeEach((done) => {
@@ -615,7 +589,7 @@ jwt.sign({ userId }, 'your-secret-key', { expiresIn: "1y" }, (err, token) => {
                 .send(int)
                 .end((err, res) => {
                     expect(res).to.have.status(404);
-                    expect(res.body.message).to.equal('meal not found');
+                    expect(res.body.message).to.equal('cook has no meal');
                     expect(res.body.data).to.equal(500);
                     done();
                 });

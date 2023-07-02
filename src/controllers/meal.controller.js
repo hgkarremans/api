@@ -26,6 +26,7 @@ const mealController = {
                 res.sendStatus(403);
                 console.log(err);
             } else {
+
                 const meal = req.body;
                 const emailRegex = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
                 let today = new Date();
@@ -294,95 +295,101 @@ const mealController = {
 
     //UC-305 verwijderen maaltijd
     deleteMeal: (req, res) => {
-        authenticateJWT(req, res); //check if user is logged in
+        authenticateJWT(req, res); // check if user is logged in
         jwt.verify(req.token, 'your-secret-key', function (err, data) {
-            if (err) {
-                res.sendStatus(403);
-                console.log(req.token);
-                console.log(err);
-            } else {
-                const mealId = req.body.id;
-                logger.debug('id=', mealId);
-                logger.info('Delete meal');
-
-                //validate incoming user info
-                try {
-                    assert(typeof mealId === 'number', 'id must be a number');
-                } catch (err) {
-                    res.status(400).json({
-                        status: 400,
-                        message: err.message.toString(),
-                        data: mealId
-                    });
-                }
-
-                const sqlStatement = 'DELETE FROM meal WHERE id = ?';
-                const checkCooksql = 'SELECT * FROM meal WHERE id = ? ';
-                const decoded = jwt.verify(req.token, 'your-secret-key');
-                pool.getConnection(function (err, conn) {
-                    // Do something with the connection
-                    if (err) {
-                        console.log('error', err);
-                        next('error: ' + err.message);
-                    }
-                    if (conn) {
-                        conn.query(checkCooksql, [mealId], function (err, results, fields) {
-                            if (err) {
-                                logger.err(err.message);
-                                next({
-                                    code: 409,
-                                    message: err.message
-                                });
-                            }
-                            if (results.length > 0) {
-                                const meal = results[0];
-
-                                if (meal.cookId == decoded.userId) {
-                                    conn.query(sqlStatement, [mealId], function (err, results, fields) {
-                                        if (err) {
-                                            logger.err(err.message);
-                                            next({
-                                                code: 409,
-                                                message: err.message
-                                            });
-                                        }
-                                        if (results.affectedRows == 0) {
-                                            res.status(404).json({
-                                                statusCode: 404,
-                                                message: 'meal not found',
-                                                data: mealId
-                                            });
-                                        }
-                                        if (results.affectedRows > 0) {
-                                            // logger.info('Found', results.length, 'results');
-                                            res.status(200).json({
-                                                statusCode: 200,
-                                                message: 'meal delete endpoint',
-                                                data: results
-                                            });
-                                        }
-                                    });
-                                } else {
-                                    res.status(400).json({
-                                        statusCode: 403,
-                                        message: 'user is not authorized to delete this meal',
-                                        data: mealId
-                                    });
-                                }
-                            } else {
-                                res.status(404).json({
-                                    statusCode: 404,
-                                    message: 'meal not found',
-                                    data: mealId
-                                });
-                            }
-                        })
-                        pool.releaseConnection(conn);
-                    }
-                });
+          if (err) {
+            res.sendStatus(403);
+            console.log(req.token);
+            console.log(err);
+          } else {
+            const mealId = req.body.id;
+            logger.debug('id=', mealId);
+            logger.info('Delete meal');
+      
+            // validate incoming user info
+            try {
+              assert(typeof mealId === 'number', 'id must be a number');
+            } catch (err) {
+              return res.status(400).json({
+                status: 400,
+                message: err.message.toString(),
+                data: mealId
+              });
             }
+      
+            const sqlStatement = 'DELETE FROM meal WHERE id = ?';
+            const checkCooksql = 'SELECT * FROM meal WHERE id = ? ';
+            const decoded = jwt.verify(req.token, 'your-secret-key');
+            console.log(decoded);
+            pool.getConnection(function (err, conn) {
+              // Do something with the connection
+              if (err) {
+                console.log('error', err);
+                return next('error: ' + err.message);
+              }
+              if (conn) {
+                conn.query(checkCooksql, [mealId], function (err, results, fields) {
+                  if (err) {
+                    logger.err(err.message);
+                    return next({
+                      code: 409,
+                      message: err.message
+                    });
+                  }
+                  if (results.length > 0) {
+                    const meal = results[0];
+                    console.log(meal);
+                    console.log(results)
+      
+                    if (meal.cookId == decoded.userId) {
+                      conn.query(sqlStatement, [mealId], function (err, results, fields) {
+                        if (err) {
+                          logger.err(err.message);
+                          return next({
+                            code: 409,
+                            message: err.message
+                          });
+                        }
+                        if (results.affectedRows == 0) {
+                            console.log(results);
+                          return res.status(404).json({
+                            statusCode: 404,
+                            message: 'meal not found',
+                            data: mealId
+                          });
+                        }
+                        if (results.affectedRows > 0) {
+                          // logger.info('Found', results.length, 'results');
+                          return res.status(200).json({
+                            statusCode: 200,
+                            message: 'meal delete endpoint',
+                            data: results
+                          });
+                        }
+                      });
+                    } else {
+                      return res.status(400).json({
+                        statusCode: 403,
+                        message: 'user is not authorized to delete this meal',
+                        data: mealId
+                      });
+                    }
+                  } else {
+                    console.log(results);
+                    return res.status(404).json({
+                      statusCode: 404,
+                      message: 'cook has no meal',
+                      data: mealId
+                    });
+                  }
+                });
+                pool.releaseConnection(conn);
+              }
+            });
+          }
         });
-    },
+      }
+      
 
 }
 module.exports = mealController;

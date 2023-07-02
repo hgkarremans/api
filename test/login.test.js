@@ -67,7 +67,7 @@ describe('UC-101 inloggen', () => {
     it('TC-101-2 password as number', (done) => {
         const user = {
             emailAdress: 'ronaldo@gmail.com',
-            password: '1234'
+            password: 1234
         };
         chai
             .request(server)
