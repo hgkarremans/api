@@ -312,7 +312,7 @@ jwt.sign({ userId }, 'your-secret-key', { expiresIn: "1y" }, (err, token) => {
                     imageUrl: "https://miljuschka.nl/wp-content/uploads/2021/02/Pasta-bolognese-3-2.jpg",
                     name: "Pasta Bolognese met tomaat, spekjes en kaas",
                     description: "Een heerlijke klassieker! Altijd goed voor tevreden gesmikkel!",
-                    allergenes: "gluten, lactose",
+                    allergenes: "gluten",
                 })
                 .end((err, res) => {
                     console.log(res.body);  
