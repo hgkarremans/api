@@ -315,6 +315,7 @@ jwt.sign({ userId }, 'your-secret-key', { expiresIn: "1y" }, (err, token) => {
                     allergenes: "gluten, lactose",
                 })
                 .end((err, res) => {
+                    console.log(res.body);  
                     expect(res).to.have.status(200);
                     expect(res.body.message).to.equal('meal update endpoint');
                     expect(res.body.data.affectedRows).to.equal(1);
