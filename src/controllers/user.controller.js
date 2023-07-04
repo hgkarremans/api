@@ -5,6 +5,8 @@ const pool = require('../util/mysql-db');
 const { type } = require('os');
 var jwt = require('jsonwebtoken');
 const { log } = require('console');
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 const authenticateJWT = (req, res) => {
   const bearerHeader = req.headers.authorization;
@@ -32,7 +34,6 @@ const userController = {
       assert(typeof user.emailAdress === 'string', 'emailAdress must be a string');
       assert(typeof user.password === 'string', 'password must be a string');
       assert(typeof user.phoneNumber === 'string', 'phoneNumber must be a string');
-      // assert(typeof user.roles === 'string', 'roles must be a string');
       assert(typeof user.street === 'string', 'street must be a string');
       assert(typeof user.city === 'string', 'city must be a string');
     } catch (err) {
@@ -42,8 +43,8 @@ const userController = {
         data: user
       });
     }
-    //roles eruit gehaald
-    const sqlStatement = "INSERT INTO user (firstName, lastName, isActive, emailAdress, password, phoneNumber,  street, city) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+    const sqlStatement = "INSERT INTO user (firstName, lastName, isActive, emailAdress, password, phoneNumber, street, city) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
     const checkEmailSql = 'SELECT COUNT(*) AS count FROM user WHERE emailAdress = ?';
 
     pool.getConnection((err, connection) => {
@@ -63,9 +64,10 @@ const userController = {
 
         const count = results[0].count;
         if (count === 0) {
-          connection.query(sqlStatement, [user.firstName, user.lastName, user.isActive, user.emailAdress, user.password, user.phoneNumber, user.roles, user.street, user.city], (err, results) => {
-            connection.release();
+          // Hash the password
+          bcrypt.hash(user.password, saltRounds, function (err, hashedPassword) {
             if (err) {
+              connection.release();
               console.log(err);
               return res.status(500).json({
                 status: 500,
@@ -73,10 +75,23 @@ const userController = {
                 data: user
               });
             }
-            return res.status(200).json({
-              statusCode: 200,
-              message: 'User register endpoint',
-              data: user
+
+            // Store the hashed password in the database
+            connection.query(sqlStatement, [user.firstName, user.lastName, user.isActive, user.emailAdress, hashedPassword, user.phoneNumber, user.street, user.city], (err, results) => {
+              connection.release();
+              if (err) {
+                console.log(err);
+                return res.status(500).json({
+                  status: 500,
+                  message: 'Internal Server Error',
+                  data: user
+                });
+              }
+              return res.status(200).json({
+                statusCode: 200,
+                message: 'User register endpoint',
+                data: user
+              });
             });
           });
         } else {
@@ -90,7 +105,6 @@ const userController = {
       });
     });
   },
-
 
 
   //uc-202

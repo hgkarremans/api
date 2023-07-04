@@ -14,7 +14,7 @@ const exp = require('constants');
 const CLEAR_USER_TABLE = 'DELETE IGNORE FROM user';
 
 const INSERT_USER =
-    'INSERT INTO user (firstName, lastName, isActive, emailAdress, password, phoneNumber, street, city) VALUES ("Karel", "Ronaldo", 1, "ronaldo2334@gmail.com", "secret", "0618128342", "meilustweg", "BOZ")';
+    'INSERT INTO user (firstName, lastName, isActive, emailAdress, password, phoneNumber, street, city) VALUES ("Karel", "Ronaldo", 1, "ronaldo2334@gmail.com", "$2a$12$Zmahp8iN8v3gBx06KLaMSOxFygQMc4nfw1HWA6j.n2to.WBZ7mGku", "0618128342", "meilustweg", "BOZ")';
 
 
 describe('UC-101 inloggen', () => {
@@ -59,7 +59,7 @@ describe('UC-101 inloggen', () => {
             .send(user)
             .end((err, res) => {
                 expect(res).to.have.status(400);
-                expect(res.body.message).to.equal('Email address must be valid');
+                expect(res.body.message).to.equal('Email adress must be valid');
                 done();
             });
     });
@@ -105,7 +105,7 @@ describe('UC-101 inloggen', () => {
             .send(user)
             .end((err, res) => {
                 expect(res).to.have.status(400);
-                expect(res.body.message).to.equal('emailaddress must be provided in request');
+                expect(res.body.message).to.equal('emailAdress must be provided in request');
                 done();
             });
     });
