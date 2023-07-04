@@ -338,9 +338,7 @@ const mealController = {
                   }
                   if (results.length > 0) {
                     const meal = results[0];
-                    console.log(meal);
-                    console.log(results)
-      
+
                     if (meal.cookId == decoded.userId) {
                       conn.query(sqlStatement, [mealId], function (err, results, fields) {
                         if (err) {

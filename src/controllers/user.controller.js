@@ -205,7 +205,8 @@ const userController = {
       } else {
 
         const decoded = jwt.verify(req.token, 'your-secret-key');
-        const checkUserSql = 'SELECT * FROM user INNER JOIN meal ON meal.cookId=user.id WHERE user.id=?';
+
+        const checkUserSql = 'SELECT * FROM meal lEFT JOIN User ON meal.cookId=user.id WHERE user.id=?';
         logger.info('Find user');
         logger.debug('Id=', decoded.userId);
         pool.getConnection((err, connection) => {
@@ -346,6 +347,7 @@ const userController = {
       }
     });
   },
+  //UC-206
   deleteUser: (req, res) => {
     authenticateJWT(req, res);  //check if user is logged in
     jwt.verify(req.token, 'your-secret-key', function (err, data) {

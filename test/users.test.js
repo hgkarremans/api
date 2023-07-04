@@ -286,11 +286,16 @@ describe('UC-202 Opvragen van overzicht van users', () => {
 
 
     it('TC-202-2 - Toon gebruikers met zoekterm op niet-bestaande velden', (done) => {
+        
+        const filter= {
+            firstName: "Karel",
+            lastName: "Ronaldo",
+            
+        };
         // Voer de test uit
         chai
             .request(server)
             .get('/api/user')
-            .query({ name: 'foo', city: 'non-existent' })
             // Is gelijk aan .get('/api/user?name=foo&city=non-existent')
             .end((err, res) => {
                 assert(err === null);
@@ -302,7 +307,51 @@ describe('UC-202 Opvragen van overzicht van users', () => {
                 done();
             });
     });
+
+    it('TC-202-3 - Toon gebruikers met zoekterm op bestaande velden', (done) => {
+        const filter= {
+            "isActive" : 0
+        }
+        // Voer de test uit
+        chai
+            .request(server)
+            .get('/api/user')
+            .send(filter)
+            // Is gelijk aan .get('/api/user?name=existing&city=Boz')
+            .end((err, res) => {
+                assert(err === null);
+                // expect(res.body).to.be.an('object');
+                let { statusCode, message, data } = res.body;
+                // expect(res.body).to.be.an('object');
+                expect(res.body.statusCode).to.equal(200);
+                expect(message).to.be.a('string').that.equals('User getAll endpoint inactive users');
+                done();
+            });
+    }
+    );
+    it('TC-202-4 - Toon gebruikers met zoekterm op bestaande velden', (done) => {
+        const filter= {
+            "isActive" : 1
+        }
+        // Voer de test uit
+        chai
+            .request(server)
+            .get('/api/user')
+            .send(filter)
+            // Is gelijk aan .get('/api/user?name=existing&city=Boz')
+            .end((err, res) => {
+                assert(err === null);
+                // expect(res.body).to.be.an('object');
+                let { statusCode, message, data } = res.body;
+                // expect(res.body).to.be.an('object');
+                expect(res.body.statusCode).to.equal(200);
+                expect(message).to.be.a('string').that.equals('User getAll endpoint active users');
+                done();
+            });
+    }
+    );
 });
+
 describe('UC-203 opvragen van gebruikersprofiel', () => {
 
     before((done) => {
