@@ -206,7 +206,7 @@ const userController = {
 
         const decoded = jwt.verify(req.token, 'your-secret-key');
 
-        const checkUserSql = 'SELECT * FROM meal lEFT JOIN User ON meal.cookId=user.id WHERE user.id=?';
+        const checkUserSql = 'SELECT * FROM meal LEFT JOIN user ON meal.cookId=user.id WHERE user.id=?';
         logger.info('Find user');
         logger.debug('Id=', decoded.userId);
         pool.getConnection((err, connection) => {
