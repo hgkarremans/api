@@ -160,7 +160,6 @@ const mealController = {
 
                             try {
                                 assert(results[0].cookId == decoded.userId, 'user is not authorized to update this meal');
-
                             } catch (err) {
                                 return res.status(400).json({
                                     status: 400,

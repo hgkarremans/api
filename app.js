@@ -7,7 +7,7 @@ const mealRouters = require('./src/routes/meal.routes');
 const jwt = require('jsonwebtoken');
 
 const app = express()
-const port = 3000
+const port = 4000
 
 
 
