@@ -8,7 +8,6 @@ const { log } = require("console");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
 
-
 const userController = {
   //UC-201
   createUser: (req, res) => {
@@ -267,59 +266,45 @@ const userController = {
 
   //UC-204
   getUserWithId: (req, res) => {
-    const id = req.params.id;
+    const id = parseInt(req.params.id); 
     console.log(id);
-    try {
-      assert(typeof id === "number", "id must be a number");
-    } catch (error) {
+
+    if (isNaN(id)) {
+      // Check if the conversion was successful
       res.status(400).json({
         status: 400,
-        message: error.message.toString(),
-        data: error,
+        message: "id must be a number",
+        data: req.params.id, 
       });
       return;
     }
+    
+    const checkUserSql = "SELECT * FROM user WHERE id = ?";
+    pool.getConnection((err, connection) => {
+      if (err) throw err;
+      connection.query(checkUserSql, [id], (err, results) => {
+        if (err) throw err;
+        if (results.length > 0) {
+          const user = results[0];
+          res.status(200).json({
+            statusCode: 200,
+            message: "User id endpoint",
+            data: user,
+          });
+          connection.release();
+          return user;
+        } else {
+          const error = new Error(`User with ID ${id} not found`);
+          res.status(404).json({
+            statusCode: 404,
+            message: "User not found",
+            data: id,
+          });
+          connection.release();
+        }
+      });
+    });
 
-
-
-
-
-    // try {
-    //   assert(typeof id === "number", "id must be a number");
-    // } catch (error) {
-    //   res.status(400).json({
-    //     status: 400,
-    //     message: error.message.toString(),
-    //     data: id,
-    //   });
-    //   return;
-    // }
-    // const checkUserSql = "SELECT * FROM user WHERE id = ?";
-
-    // pool.getConnection((err, connection) => {
-    //   if (err) throw err;
-    //   connection.query(checkUserSql, [id], (err, results) => {
-    //     if (err) throw err;
-    //     if (results.length > 0) {
-    //       const user = results[0];
-    //       res.status(200).json({
-    //         statusCode: 200,
-    //         message: "User id endpoint",
-    //         data: user,
-    //       });
-    //       connection.release();
-    //       return user;
-    //     } else {
-    //       const error = new Error(`User with ID ${id} not found`);
-    //       res.status(404).json({
-    //         statusCode: 404,
-    //         message: "User not found",
-    //         data: id,
-    //       });
-    //       connection.release();
-    //     }
-    //   });
-    // });
   },
   //UC-205
   updateUser: (req, res) => {
