@@ -355,69 +355,40 @@ const userController = {
   },
   //UC-206
   deleteUser: (req, res) => {
-    jwt.verify(req.token, "your-secret-key", function (err, data) {
-      if (err) {
-        res.sendStatus(403);
-        console.log(err);
-      } else {
-        const id = req.body.id;
-        const decoded = jwt.verify(req.token, "your-secret-key");
-        logger.info("Delete user");
-        logger.debug("Id=", id);
-        try {
-          assert(typeof id === "number", "id must be a number");
-          assert(
-            id == decoded.userId,
-            "id must be the same as the logged in user"
-          );
-        } catch (error) {
-          res.status(400).json({
-            status: 400,
-            message: error.message.toString(),
-            data: id,
-          });
-          return;
-        }
+    const id = parseInt(req.params.id); 
+    console.log(id);
 
-        const checkUserSql = "SELECT * FROM user WHERE id = ?";
-        let sqlStatement = "DELETE FROM user WHERE id = " + id;
-
-        pool.getConnection((err, connection) => {
-          if (err) throw err;
-          connection.query(checkUserSql, [id], (err, results) => {
-            if (err) throw err;
-            if (results.length > 0) {
-              connection.query(sqlStatement, [id], (err, results) => {
-                if (err) {
-                  res.status(400).json({
-                    status: 400,
-                    message: "User is cook, can't be deleted",
-                    data: err.message.toString(),
-                  });
-                } else {
-                  console.log(`User with ID ${id} deleted successfully`);
-
-                  res.status(200).json({
-                    statusCode: 200,
-                    message: "User delete endpoint",
-                    data: id,
-                  });
-                }
-                connection.release();
-              });
-            } else {
-              const error = new Error(`User with ID ${id} not found`);
-              console.error(error);
-              res.status(404).json({
-                statusCode: 404,
-                message: "User not found",
-                data: id,
-              });
-              connection.release();
-            }
-          });
+    if (isNaN(id)) {
+      // Check if the conversion was successful
+      res.status(400).json({
+        status: 400,
+        message: "id must be a number",
+        data: req.params.id, 
+      });
+      return;
+    }
+    const decoded = jwt.verify(req.token, "your-secret-key");
+    if (id != decoded.userId) {
+      res.status(403).json({
+        status: 403,
+        message: "Forbidden",
+        data: id,
+      });
+      return;
+    }
+    const sqlStatement = "DELETE FROM user WHERE id = ?";
+    pool.getConnection((err, connection) => {
+      if (err) throw err;
+      connection.query(sqlStatement, [id], (err, results) => {
+        if (err) throw err;
+        console.log(`User with ID ${id} deleted successfully`);
+        res.status(200).json({
+          statusCode: 200,
+          message: "User delete endpoint",
+          data: id,
         });
-      }
+        connection.release();
+      });
     });
   },
 };
