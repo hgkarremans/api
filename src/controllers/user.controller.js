@@ -308,89 +308,49 @@ const userController = {
   },
   //UC-205
   updateUser: (req, res) => {
-    jwt.verify(req.token, "your-secret-key", function (err, data) {
-      if (err) {
-        res.sendStatus(403);
-        console.log(err);
-      } else {
-        const user = req.body;
-        const decoded = jwt.verify(req.token, "your-secret-key");
+    const id = parseInt(req.params.id); 
+    console.log(id);
 
-        logger.info("Update user");
-        logger.debug("User=", user);
+    try {
+      assert (typeof emailAdress ==="string", "emailAdress must be a string")
+      assert (typeof phoneNumber ==="string", "phoneNumber must be a string")
+    } catch (error) {
+      
+    }
 
-        //validate incoming user info
+    if (isNaN(id)) {
+      // Check if the conversion was successful
+      res.status(400).json({
+        status: 400,
+        message: "id must be a number",
+        data: req.params.id, 
+      });
+      return;
+    }
+    const decoded = jwt.verify(req.token, "your-secret-key");
+    if (id != decoded.userId) {
+      res.status(403).json({
+        status: 403,
+        message: "Forbidden",
+        data: id,
+      });
+      return;
+    }
+    
 
-        try {
-          assert(typeof user.id === "number", "id must be a number");
-          assert(
-            user.id == decoded.userId,
-            "id must be the same as the logged in user"
-          );
-          assert(
-            typeof user.firstName === "string",
-            "firstName must be a string"
-          );
-          assert(
-            typeof user.lastName === "string",
-            "lastName must be a string"
-          );
-          assert(
-            typeof user.emailAdress === "string",
-            "emailAdress must be a string"
-          );
-        } catch (err) {
-          res.status(400).json({
-            status: 400,
-            message: err.message.toString(),
-            data: user,
-          });
-          return;
-        }
-
-        const checkUserSql = "SELECT * FROM user WHERE id = ?";
-        const sqlStatement =
-          "UPDATE user SET firstName = '" +
-          user.firstName +
-          "', lastName = '" +
-          user.lastName +
-          "', emailAdress = '" +
-          user.emailAdress +
-          "' WHERE id = " +
-          user.id;
-
-        pool.getConnection((err, connection) => {
-          if (err) throw err;
-          connection.query(checkUserSql, [user.id], (err, results) => {
-            if (err) throw err;
-            if (results.length > 0) {
-              connection.query(
-                sqlStatement,
-                [user.firstName, user.lastName, user.email, user.id],
-                (err, results) => {
-                  if (err) throw err;
-                  console.log(`User with ID ${user.id} updated successfully`);
-                  res.status(200).json({
-                    statusCode: 200,
-                    message: "User update endpoint",
-                    data: user,
-                  });
-                  connection.release();
-                }
-              );
-            } else {
-              const error = new Error(`User with ID ${user.id} not found`);
-              console.error(error);
-              res.status(404).json({
-                statusCode: 404,
-                message: "User not found",
-                data: user,
-              });
-              connection.release();
-            }
-          });
+    const sqlStatement = "Update user set firstName = ?, lastName = ?, isActive = ?, emailAdress = ?, password = ?, phoneNumber = ?, street = ?, city = ? where id = ?";
+    pool.getConnection((err, connection) => {
+      if (err) throw err;
+      connection.query(sqlStatement, [req.body.firstName, req.body.lastName, req.body.isActive, req.body.emailAdress, req.body.password, req.body.phoneNumber, req.body.street, req.body.city, id], (err, results) => {
+        if (err) throw err;
+        console.log(`User with ID ${id} updated successfully`);
+        res.status(200).json({
+          statusCode: 200,
+          message: "User update endpoint",
+          data: req.body,
         });
-      }
+        connection.release();
+      });
     });
   },
   //UC-206

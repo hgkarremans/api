@@ -28,10 +28,10 @@ router.get('/profile/:id', authenticateJWT, userController.getUserProfile);
 router.get('/:id', authenticateJWT, userController.getUserWithId);
 
 // UC-205 User wijzigen
-router.put('/:userId', authenticateJWT, userController.updateUser);
+router.put('/:id', authenticateJWT, userController.updateUser);
 
 // UC-206 User verwijderen
-router.delete('/:userId', authenticateJWT, userController.deleteUser);
+router.delete('/:id', authenticateJWT, userController.deleteUser);
 
 
 module.exports = router;
