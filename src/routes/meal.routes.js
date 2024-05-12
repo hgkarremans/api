@@ -1,19 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const mealController = require("../controllers/meal.controller");
-
-const authenticateJWT = (req, res, next) => {
-  const bearerHeader = req.headers.authorization;
-  if (typeof bearerHeader !== "undefined") {
-    const bearer = bearerHeader.split(" ");
-    const bearerToken = bearer[1];
-    req.token = bearerToken;
-    // Call next to pass control to the next middleware or route handler
-    next();
-  } else {
-    res.sendStatus(403);
-  }
-};
+const { authenticateJWT } = require("../middleware/auth.middleware");
 
 // UC-301 Maaltijd aanmaken
 router.post("", authenticateJWT, mealController.createMeal);

@@ -5,22 +5,13 @@ const { time } = require('console');
 const { json } = require('body-parser');
 var jwt = require('jsonwebtoken');
 
-const authenticateJWT = (req, res) => {
-    const bearerHeader = req.headers["authorization"];
-    if (typeof bearerHeader !== 'undefined') {
-        const bearer = bearerHeader.split(" ");
-        const bearerToken = bearer[1];
-        req.token = bearerToken;
-    } else {
-        res.sendStatus(403);
-    }
-};
+
 
 const mealController = {
 
     //UC-301 Toevoegen maaltijd
     createMeal: (req, res) => {
-        authenticateJWT(req, res);  //check if user is logged in
+        
         jwt.verify(req.token, 'your-secret-key', function (err, data) {
             if (err) {
                 res.sendStatus(403);
