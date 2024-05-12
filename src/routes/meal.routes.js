@@ -7,15 +7,15 @@ const { authenticateJWT } = require("../middleware/auth.middleware");
 router.post("", authenticateJWT, mealController.createMeal);
 
 // UC-302 Maaltijd wijzigen
-router.put("/:mealId", authenticateJWT, mealController.updateMeal);
+router.put("/:id", authenticateJWT, mealController.updateMeal);
 
 // UC-303 Opvragen van maaltijden
 router.get("", mealController.getAllMeals);
 
 // UC-304 Opvragen van maaltijd bij ID
-router.get("/:mealId", mealController.getMealWithId);
+router.get("/:id", mealController.getMealWithId);
 
 // UC-305 Maaltijd verwijderen
-router.delete("/:mealId", authenticateJWT, mealController.deleteMeal);
+router.delete("/:id", authenticateJWT, mealController.deleteMeal);
 
 module.exports = router;
