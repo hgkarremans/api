@@ -162,49 +162,58 @@ const mealController = {
       });
       return;
     }
-    sqlStatement = `UPDATE meal SET imageUrl = ?, name = ?, description = ?, allergenes = ?, price = ?, maxAmountOfParticipants = ?, isVega = ?, isVegan = ?, isToTakeHome = ?, isActive = ?, dateTime = ? WHERE id = ?`;
+    sqlStatement = `UPDATE meal SET imageUrl = ?, name = ?, description = ?, allergenes = ?, price = ?, maxAmountOfParticipants = ?, isVega = ?, isVegan = ?, isToTakeHome = ?, isActive = ?, dateTime = ? WHERE id = ? AND cookId = ?`;
+    const decoded = jwt.verify(req.token, "your-secret-key");
     pool.getConnection(function (err, conn) {
-        if (err) {
-            console.log("error", err);
-            return next("error: " + err.message);
-        }
-        if (conn) {
-            conn.query(
-                sqlStatement,
-                [
-                    req.body.imageUrl,
-                    req.body.name,
-                    req.body.description,
-                    req.body.allergenes,
-                    req.body.price,
-                    req.body.maxAmountOfParticipants,
-                    req.body.isVega,
-                    req.body.isVegan,
-                    req.body.isToTakeHome,
-                    req.body.isActive,
-                    req.body.dateTime,
-                    id,
-                ],
-                function (err, results, fields) {
-                    if (err) {
-                        console.log(err);
-                        return next({
-                            code: 409,
-                            message: err.message,
-                        });
-                    }
-                    if (results) {
-                        logger.info("Found", results.length, "results");
-                        res.status(200).json({
-                            statusCode: 200,
-                            message: "meal update endpoint",
-                            data: results,
-                        });
-                    }
-                }
-            );
-            pool.releaseConnection(conn);
-        }
+      if (err) {
+        console.log("error", err);
+        return next("error: " + err.message);
+      }
+      if (conn) {
+        conn.query(
+          sqlStatement,
+          [
+            req.body.imageUrl,
+            req.body.name,
+            req.body.description,
+            req.body.allergenes,
+            req.body.price,
+            req.body.maxAmountOfParticipants,
+            req.body.isVega,
+            req.body.isVegan,
+            req.body.isToTakeHome,
+            req.body.isActive,
+            req.body.dateTime,
+            id,
+            decoded.userId,
+          ],
+          function (err, results, fields) {
+            if (err) {
+              console.log(err);
+              return next({
+                code: 409,
+                message: err.message,
+              });
+            }
+            if (results.affectedRows > 0) {
+              logger.info("Found", results.length, "results");
+              res.status(200).json({
+                statusCode: 200,
+                message: "meal update endpoint",
+                data: results,
+              });
+            } else {
+                console.log(results);
+              res.status(404).json({
+                status: 404,
+                message: "No meal with this ID found or you are not the cook of this meal",
+                data: id,
+              });
+            }
+          }
+        );
+        pool.releaseConnection(conn);
+      }
     });
   },
 
