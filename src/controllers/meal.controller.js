@@ -4,6 +4,7 @@ const pool = require("../util/mysql-db");
 const { time } = require("console");
 const { json } = require("body-parser");
 var jwt = require("jsonwebtoken");
+const { parse } = require("path");
 
 const mealController = {
   //UC-301 Toevoegen maaltijd
@@ -231,8 +232,8 @@ const mealController = {
               message: "meal getAll endpoint",
               data: results,
             });
-            conn.release(); // Release the connection back to the pool
-            return; // Add this return statement to stop execution
+            conn.release(); 
+            return; 
           }
         });
       }
@@ -241,33 +242,48 @@ const mealController = {
 
   //UC-304 opvragen maaltijd bij ID
   getMealWithId: (req, res) => {
-    const mealId = req.body.id;
-    logger.info("Find meal");
-    logger.debug("id=", mealId);
+    const mealId = parseInt(req.params.id);
 
-    const checkUserSql = "SELECT * FROM meal WHERE id = ?";
-    pool.getConnection((err, connection) => {
-      if (err) throw err;
-      connection.query(checkUserSql, [mealId], (err, results) => {
-        if (err) throw err;
-        if (results.length > 0) {
-          const user = results[0];
-          res.status(200).json({
-            statusCode: 200,
-            message: "meal id endpoint",
-            data: user,
-          });
-          connection.release();
-          return user;
-        } else {
-          res.status(404).json({
-            statusCode: 404,
-            message: "meal not found",
-            data: mealId,
-          });
-          connection.release();
+    try {
+        assert (typeof mealId === 'number', 'id must be a number'); 
+    } catch (error) {
+        res.status(400).json({
+            status: 400,
+            message: error.message.toString(),
+            data: mealId
+        });
+        return;
+    }
+    sqlStatement = `SELECT * FROM meal WHERE id = ?`;
+    pool.getConnection(function (err, conn) {
+        if (err) {
+            console.log("error", err);
+            return next("error: " + err.message);
         }
-      });
+        if (conn) {
+            conn.query(
+                sqlStatement,
+                [mealId],
+                function (err, results, fields) {
+                    if (err) {
+                        console.log(err);
+                        return next({
+                            code: 409,
+                            message: err.message,
+                        });
+                    }
+                    if (results) {
+                        logger.info("Found", results.length, "results");
+                        res.status(200).json({
+                            statusCode: 200,
+                            message: "meal id endpoint",
+                            data: results,
+                        });
+                    }
+                }
+            );
+            pool.releaseConnection(conn);
+        }
     });
   },
 
