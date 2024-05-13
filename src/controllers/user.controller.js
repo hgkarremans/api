@@ -121,100 +121,169 @@ const userController = {
 
   //uc-202
   getAllUsers: (req, res, next) => {
-    if (req.body.isActive == 0) {
-      let sqlStatement = "SELECT * FROM `user` WHERE isActive = 0";
-      // Hier wil je misschien iets doen met mogelijke filterwaarden waarop je zoekt.
+    const validFilters = ['firstName', 'lastName', 'street', 'city', 'isActive', 'emailAdress'];
+    const {...filters} = req.body;
 
-      pool.getConnection(function (err, conn) {
-        // Do something with the connection
-        if (err) {
-          console.log("error", err);
-          next("error: " + err.message);
-        }
-        if (conn) {
-          conn.query(sqlStatement, function (err, results, fields) {
-            if (err) {
-              logger.err(err.message);
-              next({
-                code: 409,
-                message: err.message,
-              });
-            }
-            if (results) {
-              // logger.info('Found', results.length, 'results');
-              res.status(200).json({
-                statusCode: 200,
-                message: "User getAll endpoint inactive users",
-                data: results,
-              });
-            }
-          });
-          pool.releaseConnection(conn);
-        }
-      });
-    } else if (req.body.isActive == 1) {
-      let sqlStatement = "SELECT * FROM `user` WHERE isActive = 1";
-      // Hier wil je misschien iets doen met mogelijke filterwaarden waarop je zoekt.
+    // Check if the number of filters exceeds the limit
+    if (Object.keys(filters).length > 2) {
+        res.status(400).json({
+            status: 400,
+            message: "Maximum of 2 filters allowed",
+            data: filters,
+        });
+        return;
+    }
 
-      pool.getConnection(function (err, conn) {
-        // Do something with the connection
-        if (err) {
-          console.log("error", err);
-          next("error: " + err.message);
-        }
-        if (conn) {
-          conn.query(sqlStatement, function (err, results, fields) {
-            if (err) {
-              logger.err(err.message);
-              next({
-                code: 409,
-                message: err.message,
-              });
-            }
-            if (results) {
-              // logger.info('Found', results.length, 'results');
-              res.status(200).json({
-                statusCode: 200,
-                message: "User getAll endpoint active users",
-                data: results,
-              });
-            }
-          });
-          pool.releaseConnection(conn);
-        }
-      });
-    } else {
-      let sqlStatement = "SELECT * FROM `user`";
-      // Hier wil je misschien iets doen met mogelijke filterwaarden waarop je zoekt.
+    let sqlStatement = "SELECT * FROM user";
 
-      pool.getConnection(function (err, conn) {
-        // Do something with the connection
-        if (err) {
-          console.log("error", err);
-          next("error: " + err.message);
+    // Check if any filters are provided
+    if (Object.keys(filters).length > 0) {
+        const validFiltersKeys = Object.keys(filters).filter(key => validFilters.includes(key));
+        if (validFiltersKeys.length > 0) {
+            const whereClause = validFiltersKeys.map(key => `${key} = ?`).join(' AND ');
+            sqlStatement += ` WHERE ${whereClause}`;
+        } else {
+            res.status(400).json({
+                status: 400,
+                message: "Invalid filter keys",
+                data: filters,
+            });
+            return;
         }
-        if (conn) {
-          conn.query(sqlStatement, function (err, results, fields) {
+    }
+
+    pool.getConnection((err, connection) => {
+        if (err) {
+            console.error("Error getting database connection:", err);
+            res.status(500).json({
+                status: 500,
+                message: "Internal server error",
+                data: null,
+            });
+            return;
+        }
+        connection.query(sqlStatement, Object.values(filters), (err, results) => {
+            connection.release();
             if (err) {
-              logger.err(err.message);
-              next({
-                code: 409,
-                message: err.message,
-              });
+                console.error("Error executing query:", err);
+                res.status(500).json({
+                    status: 500,
+                    message: "Internal server error",
+                    data: null,
+                });
+                return;
             }
-            if (results) {
-              // logger.info('Found', results.length, 'results');
-              res.status(200).json({
+            res.status(200).json({
                 statusCode: 200,
                 message: "User getAll endpoint",
                 data: results,
-              });
-            }
-          });
-          pool.releaseConnection(conn);
-        }
-      });
-    }
+            });
+        });
+    });
+
+
+    
+    
+
+
+
+
+
+
+    // if (req.body.isActive == 0) {
+    //   let sqlStatement = "SELECT * FROM `user` WHERE isActive = 0";
+    //   // Hier wil je misschien iets doen met mogelijke filterwaarden waarop je zoekt.
+
+    //   pool.getConnection(function (err, conn) {
+    //     // Do something with the connection
+    //     if (err) {
+    //       console.log("error", err);
+    //       next("error: " + err.message);
+    //     }
+    //     if (conn) {
+    //       conn.query(sqlStatement, function (err, results, fields) {
+    //         if (err) {
+    //           logger.err(err.message);
+    //           next({
+    //             code: 409,
+    //             message: err.message,
+    //           });
+    //         }
+    //         if (results) {
+    //           // logger.info('Found', results.length, 'results');
+    //           res.status(200).json({
+    //             statusCode: 200,
+    //             message: "User getAll endpoint inactive users",
+    //             data: results,
+    //           });
+    //         }
+    //       });
+    //       pool.releaseConnection(conn);
+    //     }
+    //   });
+    // } else if (req.body.isActive == 1) {
+    //   let sqlStatement = "SELECT * FROM `user` WHERE isActive = 1";
+    //   // Hier wil je misschien iets doen met mogelijke filterwaarden waarop je zoekt.
+
+    //   pool.getConnection(function (err, conn) {
+    //     // Do something with the connection
+    //     if (err) {
+    //       console.log("error", err);
+    //       next("error: " + err.message);
+    //     }
+    //     if (conn) {
+    //       conn.query(sqlStatement, function (err, results, fields) {
+    //         if (err) {
+    //           logger.err(err.message);
+    //           next({
+    //             code: 409,
+    //             message: err.message,
+    //           });
+    //         }
+    //         if (results) {
+    //           // logger.info('Found', results.length, 'results');
+    //           res.status(200).json({
+    //             statusCode: 200,
+    //             message: "User getAll endpoint active users",
+    //             data: results,
+    //           });
+    //         }
+    //       });
+    //       pool.releaseConnection(conn);
+    //     }
+    //   });
+    // } else {
+    //   let sqlStatement = "SELECT * FROM `user`";
+    //   // Hier wil je misschien iets doen met mogelijke filterwaarden waarop je zoekt.
+
+    //   pool.getConnection(function (err, conn) {
+    //     // Do something with the connection
+    //     if (err) {
+    //       console.log("error", err);
+    //       next("error: " + err.message);
+    //     }
+    //     if (conn) {
+    //       conn.query(sqlStatement, function (err, results, fields) {
+    //         if (err) {
+    //           logger.err(err.message);
+    //           next({
+    //             code: 409,
+    //             message: err.message,
+    //           });
+    //         }
+    //         if (results) {
+    //           // logger.info('Found', results.length, 'results');
+    //           res.status(200).json({
+    //             statusCode: 200,
+    //             message: "User getAll endpoint",
+    //             data: results,
+    //           });
+    //         }
+    //       });
+    //       pool.releaseConnection(conn);
+    //     }
+    //   });
+    // }
   },
 
   //uc 203
