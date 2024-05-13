@@ -22,11 +22,11 @@ const CLEAR_DB =
 const INSERT_USER =
     'INSERT INTO user (firstName, lastName, isActive, emailAdress, password, phoneNumber, roles, street, city) VALUES ("Karel", "Ronaldo", 1, "ronaldo@gmail.com", "secret", "0618128342", "member", "meilustweg", "BOZ")'
 
-const INSERT_MEAL = 'INSERT INTO `meal` (`id`, `name`, `description`, `imageUrl`, `dateTime`, `maxAmountOfParticipants`, `price`, `cookId`) VALUES ' +
-    "(1, 'Kaas', 'Oude Kaas', 'www.kaas.com', '2023-06-30 15:45:00', 2, 3.10, 1);";
+const INSERT_MEAL = 'INSERT INTO `meal` (`id`, `name`, `description`, `imageUrl`, `dateTime`, `maxAmountOfParticipants`, `price`, `cookId`, `allergenes`) VALUES ' +
+    "(1, 'Kaas', 'Oude Kaas', 'www.kaas.com', '2023-06-30 15:45:00', 2, 3.10, 1, 'gluten');";
 
-const INSERT_MEAL2 = 'INSERT INTO `meal` (`id`, `name`, `description`, `imageUrl`, `dateTime`, `maxAmountOfParticipants`, `price`, `cookId`) VALUES ' +
-    "(2, 'Kaas', 'Oude Kaas', 'www.kaas.com', '2023-06-30 15:45:00', 2, 3.10, 2);";
+const INSERT_MEAL2 = 'INSERT INTO `meal` (`id`, `name`, `description`, `imageUrl`, `dateTime`, `maxAmountOfParticipants`, `price`, `cookId`, `allergenes`) VALUES ' +
+    "(2, 'Kaas', 'Oude Kaas', 'www.kaas.com', '2023-06-30 15:45:00', 2, 3.10, 2, 'gluten');";
 
 const INSERT_USERS =
     'INSERT INTO `user` (`id`, `firstName`, `lastName`, `emailAdress`, `password`, `street`, `city`) VALUES ' +
@@ -313,7 +313,7 @@ jwt.sign({ userId }, 'your-secret-key', { expiresIn: "1y" }, (err, token) => {
                     imageUrl: "https://miljuschka.nl/wp-content/uploads/2021/02/Pasta-bolognese-3-2.jpg",
                     name: "Pasta Bolognese met tomaat, spekjes en kaas",
                     description: "Een heerlijke klassieker! Altijd goed voor tevreden gesmikkel!",
-                    allergenes: "gluten",
+                    allergenes: "gluten"
                 })
                 .end((err, res) => {
                     expect(res).to.have.status(200);
@@ -338,7 +338,7 @@ jwt.sign({ userId }, 'your-secret-key', { expiresIn: "1y" }, (err, token) => {
                     imageUrl: "https://miljuschka.nl/wp-content/uploads/2021/02/Pasta-bolognese-3-2.jpg",
                     name: "Pasta Bolognese met tomaat, spekjes en kaas",
                     description: "Een heerlijke klassieker! Altijd goed voor tevreden gesmikkel!",
-                    allergenes: "gluten",
+                    allergenes: "gluten"
                 })
                 .end((err, res) => {
                     expect(res).to.have.status(404);
@@ -362,7 +362,7 @@ jwt.sign({ userId }, 'your-secret-key', { expiresIn: "1y" }, (err, token) => {
                     imageUrl: "https://miljuschka.nl/wp-content/uploads/2021/02/Pasta-bolognese-3-2.jpg",
                     name: "Pasta Bolognese met tomaat, spekjes en kaas",
                     description: "Een heerlijke klassieker! Altijd goed voor tevreden gesmikkel!",
-                    allergenes: "gluten",
+                    allergenes: "gluten"
                 })
                 .end((err, res) => {
                     expect(res).to.have.status(404);
