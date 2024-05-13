@@ -686,7 +686,8 @@ describe('UC-205 Gebruikersinformatie wijzingen', () => {
             lastName: 'Ronaldo',
             emailAdress: 'ronaldffafof@gmail.com',
             isActive: 1,
-            password: 'secret'
+            password: 'secret',
+            street: 'meilustweg'
             
 
         }
@@ -712,7 +713,8 @@ describe('UC-205 Gebruikersinformatie wijzingen', () => {
             lastName: 'Ronaldo',
             emailAdress: 'm.vanffdam@server.nl',
             isActive: 1,
-            password: 'secret'
+            password: 'secret',
+            street: 'meilustweg'
         }
         chai
             .request(server)
