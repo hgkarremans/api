@@ -1,2 +1,19 @@
+# Dependency directories
 /node_modules
-node_modules
+/.pnp
+.pnp.js
+
+# TypeScript build output
+/dist
+
+# Local development environment files
+.env
+
+# IDE/Editor specific files
+.vscode
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
