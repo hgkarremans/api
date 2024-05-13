@@ -685,7 +685,8 @@ describe('UC-205 Gebruikersinformatie wijzingen', () => {
             firstName: 'Karel',
             lastName: 'Ronaldo',
             emailAdress: 'ronaldffafof@gmail.com',
-            isActive: 1
+            isActive: 1,
+            password: 'secret'
             
 
         }
@@ -698,7 +699,7 @@ describe('UC-205 Gebruikersinformatie wijzingen', () => {
                 assert(err === null);
                 let { status, message, data } = res.body;
                 expect(res.body).to.be.an('object');
-                expect(res.body.statusCode).to.equal(200);
+                expect(res.body.status).to.equal(200);
                 expect(message).to.be.a('string').that.contains('User update endpoint');
                 expect(data).to.be.an('object');
                 done();
@@ -710,7 +711,8 @@ describe('UC-205 Gebruikersinformatie wijzingen', () => {
             firstName: 'Karel',
             lastName: 'Ronaldo',
             emailAdress: 'm.vanffdam@server.nl',
-            isActive: 1
+            isActive: 1,
+            password: 'secret'
         }
         chai
             .request(server)
