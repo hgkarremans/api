@@ -203,10 +203,11 @@ const mealController = {
                 data: results,
               });
             } else {
-                console.log(results);
+              console.log(results);
               res.status(404).json({
                 status: 404,
-                message: "No meal with this ID found or you are not the cook of this meal",
+                message:
+                  "No meal with this ID found or you are not the cook of this meal",
                 data: id,
               });
             }
@@ -241,8 +242,8 @@ const mealController = {
               message: "meal getAll endpoint",
               data: results,
             });
-            conn.release(); 
-            return; 
+            conn.release();
+            return;
           }
         });
       }
@@ -254,45 +255,41 @@ const mealController = {
     const mealId = parseInt(req.params.id);
 
     try {
-        assert (typeof mealId === 'number', 'id must be a number'); 
+      assert(typeof mealId === "number", "id must be a number");
     } catch (error) {
-        res.status(400).json({
-            status: 400,
-            message: error.message.toString(),
-            data: mealId
-        });
-        return;
+      res.status(400).json({
+        status: 400,
+        message: error.message.toString(),
+        data: mealId,
+      });
+      return;
     }
     sqlStatement = `SELECT * FROM meal WHERE id = ?`;
     pool.getConnection(function (err, conn) {
-        if (err) {
-            console.log("error", err);
-            return next("error: " + err.message);
-        }
-        if (conn) {
-            conn.query(
-                sqlStatement,
-                [mealId],
-                function (err, results, fields) {
-                    if (err) {
-                        console.log(err);
-                        return next({
-                            code: 409,
-                            message: err.message,
-                        });
-                    }
-                    if (results) {
-                        logger.info("Found", results.length, "results");
-                        res.status(200).json({
-                            statusCode: 200,
-                            message: "meal id endpoint",
-                            data: results,
-                        });
-                    }
-                }
-            );
-            pool.releaseConnection(conn);
-        }
+      if (err) {
+        console.log("error", err);
+        return next("error: " + err.message);
+      }
+      if (conn) {
+        conn.query(sqlStatement, [mealId], function (err, results, fields) {
+          if (err) {
+            console.log(err);
+            return next({
+              code: 409,
+              message: err.message,
+            });
+          }
+          if (results) {
+            logger.info("Found", results.length, "results");
+            res.status(200).json({
+              statusCode: 200,
+              message: "meal id endpoint",
+              data: results,
+            });
+          }
+        });
+        pool.releaseConnection(conn);
+      }
     });
   },
 
@@ -301,58 +298,56 @@ const mealController = {
     const mealId = parseInt(req.params.id);
 
     try {
-        assert(typeof mealId === 'number', 'id must be a number');
+      assert(typeof mealId === "number", "id must be a number");
     } catch (error) {
-        res.status(400).json({
-            status: 400,
-            message: error.message.toString(),
-            data: mealId
-        });
-        return;
+      res.status(400).json({
+        status: 400,
+        message: error.message.toString(),
+        data: mealId,
+      });
+      return;
     }
     const decoded = jwt.verify(req.token, "your-secret-key");
-    
+
     sqlStatement = `DELETE FROM meal WHERE id = ? AND cookId = ?`;
     pool.getConnection(function (err, conn) {
-        if (err) {
-            console.log("error", err);
-            return next("error: " + err.message);
-        }
-        if (conn)
-        {
-            conn.query(
-                sqlStatement,
-                [mealId, decoded.userId],
-                function (err, results, fields) {
-                    if (err) {
-                        console.log(err);
-                        return next({
-                            code: 409,
-                            message: err.message,
-                        });
-                    }
-                    if (results.affectedRows > 0) {
-                        logger.info("Found", results.length, "results");
-                        res.status(200).json({
-                            statusCode: 200,
-                            message: "meal delete endpoint",
-                            data: results,
-                        });
-                    } else {
-                        console.log(results);
-                        res.status(404).json({
-                            status: 404,
-                            message: "No meal with this ID found or you are not the cook of this meal",
-                            data: mealId
-                        });
-                    
-                    }
-                }
-            );
-            pool.releaseConnection(conn);
-        }
-    }
-    );
-   },
+      if (err) {
+        console.log("error", err);
+        return next("error: " + err.message);
+      }
+      if (conn) {
+        conn.query(
+          sqlStatement,
+          [mealId, decoded.userId],
+          function (err, results, fields) {
+            if (err) {
+              console.log(err);
+              return next({
+                code: 409,
+                message: err.message,
+              });
+            }
+            if (results.affectedRows > 0) {
+              logger.info("Found", results.length, "results");
+              res.status(200).json({
+                statusCode: 200,
+                message: "meal delete endpoint",
+                data: results,
+              });
+            } else {
+              console.log(results);
+              res.status(404).json({
+                status: 404,
+                message:
+                  "No meal with this ID found or you are not the cook of this meal",
+                data: mealId,
+              });
+            }
+          }
+        );
+        pool.releaseConnection(conn);
+      }
+    });
+  },
 };
 module.exports = mealController;
