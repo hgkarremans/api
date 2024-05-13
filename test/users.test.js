@@ -13,6 +13,7 @@ const pool = require('../src/util/mysql-db');
 var jwt = require('jsonwebtoken');
 const exp = require('constants');
 const { error, Console } = require('console');
+const logger = require('../src/util/utils').logger;
 
 const CLEAR_MEAL_TABLE = 'DELETE IGNORE FROM meal';
 const RESET_INDEX = "ALTER TABLE user AUTO_INCREMENT = 1;";
@@ -683,7 +684,9 @@ describe('UC-205 Gebruikersinformatie wijzingen', () => {
         const user = {
             firstName: 'Karel',
             lastName: 'Ronaldo',
-            emailAdress: 'ronaldffafof@gmail.com'
+            emailAdress: 'ronaldffafof@gmail.com',
+            isActive: 1
+            
 
         }
         chai
@@ -706,7 +709,8 @@ describe('UC-205 Gebruikersinformatie wijzingen', () => {
         const user = {
             firstName: 'Karel',
             lastName: 'Ronaldo',
-            emailAdress: 'm.vanffdam@server.nl'
+            emailAdress: 'm.vanffdam@server.nl',
+            isActive: 1
         }
         chai
             .request(server)

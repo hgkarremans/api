@@ -10,6 +10,7 @@ const expect = chai.expect;
 const pool = require('../src/util/mysql-db');
 const jwt = require("jsonwebtoken");
 const exp = require('constants');
+const logger = require('../src/util/utils').logger;
 
 const CLEAR_USER_TABLE = 'DELETE IGNORE FROM user';
 

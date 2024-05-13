@@ -10,6 +10,7 @@ const expect = chai.expect;
 const pool = require('../src/util/mysql-db');
 const jwt = require("jsonwebtoken");
 const exp = require('constants');
+const logger = require('../src/util/utils').logger;
 
 const RESET_INDEX_USER = "ALTER TABLE user AUTO_INCREMENT = 1;";
 const RESET_INDEX_MEAL = "ALTER TABLE meal AUTO_INCREMENT = 1;";
@@ -337,7 +338,7 @@ jwt.sign({ userId }, 'your-secret-key', { expiresIn: "1y" }, (err, token) => {
                     imageUrl: "https://miljuschka.nl/wp-content/uploads/2021/02/Pasta-bolognese-3-2.jpg",
                     name: "Pasta Bolognese met tomaat, spekjes en kaas",
                     description: "Een heerlijke klassieker! Altijd goed voor tevreden gesmikkel!",
-                    allergenes: "gluten, lactose",
+                    allergenes: "gluten",
                 })
                 .end((err, res) => {
                     expect(res).to.have.status(404);
@@ -361,7 +362,7 @@ jwt.sign({ userId }, 'your-secret-key', { expiresIn: "1y" }, (err, token) => {
                     imageUrl: "https://miljuschka.nl/wp-content/uploads/2021/02/Pasta-bolognese-3-2.jpg",
                     name: "Pasta Bolognese met tomaat, spekjes en kaas",
                     description: "Een heerlijke klassieker! Altijd goed voor tevreden gesmikkel!",
-                    allergenes: "gluten, lactose",
+                    allergenes: "gluten",
                 })
                 .end((err, res) => {
                     expect(res).to.have.status(404);
