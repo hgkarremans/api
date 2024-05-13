@@ -679,7 +679,7 @@ describe('UC-205 Gebruikersinformatie wijzingen', () => {
             }
         });
     });
-    it.skip('TC-205-1 - Gebruikersinformatie succesvol gewijzigd', (done) => {
+    it('TC-205-1 - Gebruikersinformatie succesvol gewijzigd', (done) => {
 
         const user = {
             firstName: 'Karel',
