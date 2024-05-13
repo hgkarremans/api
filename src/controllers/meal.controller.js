@@ -1,7 +1,7 @@
 const logger = require("../util/utils").logger;
 const assert = require("assert");
 const pool = require("../util/mysql-db");
-const { time } = require("console");
+const { time, Console } = require("console");
 const { json } = require("body-parser");
 var jwt = require("jsonwebtoken");
 const { parse } = require("path");
@@ -9,114 +9,108 @@ const { parse } = require("path");
 const mealController = {
   //UC-301 Toevoegen maaltijd
   createMeal: (req, res) => {
-    jwt.verify(req.token, "your-secret-key", function (err, data) {
-      if (err) {
-        res.sendStatus(403);
-        console.log(err);
-      } else {
-        const meal = req.body;
-        let today = new Date();
+    const meal = req.body;
 
-        let time =
-          today.getHours() +
-          ":" +
-          today.getMinutes() +
-          ":" +
-          today.getSeconds();
-
-        try {
-          assert(typeof meal.name === "string", "name must be a string");
-          assert(
+    try {
+        assert(typeof meal.name === "string", "name must be a string");
+        assert(
             typeof meal.description === "string",
             "description must be a string"
-          );
-          assert(typeof meal.price === "number", "price must be a number");
-          assert(
+        );
+        assert(typeof meal.price === "number", "price must be a number");
+        assert(
             typeof meal.maxAmountOfParticipants === "number",
             "maxParticipants must be a number"
-          );
-          assert(
+        );
+        assert(
             typeof meal.isActive === "number",
             "isActive must be a number"
-          );
-          assert(typeof meal.isVega === "number", "isVega must be a number");
-          assert(typeof meal.isVegan === "number", "isVegan must be a number");
-          assert(
+        );
+        assert(typeof meal.isVega === "number", "isVega must be a number");
+        assert(typeof meal.isVegan === "number", "isVegan must be a number");
+        assert(
             typeof meal.isToTakeHome === "number",
             "isToTakeHome must be a number"
-          );
-          assert(
+        );
+        assert(
             typeof meal.dateTime === "string",
             "dateTime must be a string"
-          );
-          assert(
+        );
+        assert(
             typeof meal.imageUrl === "string",
             "imageUrl must be a string"
-          );
-          assert(
+        );
+        assert(
             typeof meal.allergenes === "string",
             "allergenes must be a string"
-          );
-        } catch (err) {
-          res.status(400).json({
+        );
+    } catch (err) {
+        res.status(400).json({
             status: 400,
             message: err.message.toString(),
             data: meal,
-          });
-          return;
-        }
-        let sqlStatement =
-          "INSERT INTO `meal`(`isActive`, `isVega`, `isVegan`, `isToTakeHome`, `dateTime`, `maxAmountOfParticipants`, `price`, `imageUrl`, `cookId`, `createDate`, `updateDate`, `name`, `description`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);";
-        const date = new Date().toISOString().slice(0, 19).replace("T", " ");
-        const decoded = jwt.verify(req.token, "your-secret-key");
-        pool.getConnection(function (err, conn) {
-          // Do something with the connection
-          if (err) {
-            console.log("error", err);
-            next("error: " + err.message);
-          }
-          if (conn) {
-            conn.query(
-              sqlStatement,
-              [
-                meal.isActive,
-                meal.isVegan,
-                meal.isVega,
-                meal.isToTakeHome,
-                meal.dateTime,
-                meal.maxAmountOfParticipants,
-                meal.price,
-                meal.imageUrl,
-                decoded.userId,
-                date,
-                date,
-                meal.name,
-                meal.description,
-              ],
-              function (err, results, fields) {
-                if (err) {
-                  console.log(err);
-                  next({
-                    code: 409,
-                    message: err.message,
-                  });
-                }
-                if (results) {
-                  logger.info("Found", results.length, "results");
-                  res.status(200).json({
-                    statusCode: 200,
-                    message: "meal create endpoint",
-                    data: meal,
-                  });
-                }
-              }
-            );
-            pool.releaseConnection(conn);
-          }
         });
-      }
+        return;
+    }
+
+    let sqlStatement =
+        "INSERT INTO `meal`(`isActive`, `isVega`, `isVegan`, `isToTakeHome`, `dateTime`, `maxAmountOfParticipants`, `price`, `imageUrl`, `cookId`, `createDate`, `updateDate`, `name`, `description`, `allergenes`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+    const date = new Date().toISOString().slice(0, 19).replace("T", " ");
+    const decoded = jwt.verify(req.token, "your-secret-key");
+    console.log(meal.allergenes)
+    pool.getConnection(function (err, conn) {
+        // Do something with the connection
+        if (err) {
+            console.error("Error getting database connection:", err);
+            res.status(500).json({
+                status: 500,
+                message: "Internal server error",
+                data: null,
+            });
+            return;
+        }
+        if (conn) {
+            conn.query(
+                sqlStatement,
+                [
+                    meal.isActive,
+                    meal.isVegan,
+                    meal.isVega,
+                    meal.isToTakeHome,
+                    meal.dateTime,
+                    meal.maxAmountOfParticipants,
+                    meal.price,
+                    meal.imageUrl,
+                    decoded.userId,
+                    date,
+                    date,
+                    meal.name,
+                    meal.description,
+                    meal.allergenes,
+                ],
+                function (err, results, fields) {
+                    conn.release();
+                    if (err) {
+                        console.error("Error executing query:", err);
+                        res.status(500).json({
+                            status: 500,
+                            message: "Internal server error",
+                            data: null,
+                        });
+                        return;
+                    }
+                    res.status(200).json({
+                        statusCode: 200,
+                        message: "meal create endpoint",
+                        data: meal,
+                    });
+                }
+            );
+        }
     });
+  
   },
+
 
   //UC-302 wijzig maaltijd
   updateMeal: (req, res) => {
@@ -162,6 +156,7 @@ const mealController = {
       });
       return;
     }
+    
     sqlStatement = `UPDATE meal SET imageUrl = ?, name = ?, description = ?, allergenes = ?, price = ?, maxAmountOfParticipants = ?, isVega = ?, isVegan = ?, isToTakeHome = ?, isActive = ?, dateTime = ? WHERE id = ? AND cookId = ?`;
     const decoded = jwt.verify(req.token, "your-secret-key");
     pool.getConnection(function (err, conn) {

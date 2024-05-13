@@ -37,7 +37,7 @@ CREATE TABLE `meal` (
   `updateDate` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
   `name` varchar(200) NOT NULL,
   `description` varchar(400) NOT NULL,
-  `allergenes` set('gluten','lactose','noten') NOT NULL DEFAULT '',
+  `allergenes` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `FK_e325266e1b4188f981a00677580` (`cookId`),
   CONSTRAINT `FK_e325266e1b4188f981a00677580` FOREIGN KEY (`cookId`) REFERENCES `user` (`id`)
