@@ -285,10 +285,19 @@ const userController = {
     const id = parseInt(req.params.id);
     console.log(id);
 
+    // Extract email from the request body
+    const { emailAdress } = req.body;
+
     try {
       assert(typeof emailAdress === "string", "emailAdress must be a string");
-      assert(typeof phoneNumber === "string", "phoneNumber must be a string");
-    } catch (error) {}
+    } catch (error) {
+      res.status(400).json({
+        status: 400,
+        message: error.message,
+        data: req.body,
+      });
+      return;
+    }
 
     if (isNaN(id)) {
       // Check if the conversion was successful
@@ -309,35 +318,83 @@ const userController = {
       return;
     }
 
-    const sqlStatement =
-      "Update user set firstName = ?, lastName = ?, isActive = ?, emailAdress = ?, password = ?, phoneNumber = ?, street = ?, city = ? where id = ?";
+    // Check if emailAdress is unique
     pool.getConnection((err, connection) => {
-      if (err) throw err;
+      if (err) {
+        console.error("Error getting database connection:", err);
+        res.status(500).json({
+          status: 500,
+          message: "Internal server error",
+          data: null,
+        });
+        return;
+      }
+
+      // Perform query to check if emailAdress already exists
       connection.query(
-        sqlStatement,
-        [
-          req.body.firstName,
-          req.body.lastName,
-          req.body.isActive,
-          req.body.emailAdress,
-          req.body.password,
-          req.body.phoneNumber,
-          req.body.street,
-          req.body.city,
-          id,
-        ],
+        "SELECT COUNT(*) AS count FROM user WHERE emailAdress = ? AND id != ?",
+        [emailAdress, id],
         (err, results) => {
-          if (err) throw err;
-          console.log(`User with ID ${id} updated successfully`);
-          res.status(200).json({
-            statusCode: 200,
-            message: "User update endpoint",
-            data: req.body,
-          });
-          connection.release();
+          if (err) {
+            console.error("Error executing query:", err);
+            res.status(500).json({
+              status: 500,
+              message: "Internal server error",
+              data: null,
+            });
+            return;
+          }
+
+          // Check if emailAdress already exists
+          if (results[0].count > 0) {
+            res.status(400).json({
+              status: 400,
+              message: "Email address is already in use",
+              data: emailAdress,
+            });
+            connection.release();
+            return;
+          }
+
+          // If email is unique, proceed with updating the user
+          const sqlStatement =
+            "UPDATE user SET firstName = ?, lastName = ?, isActive = ?, emailAdress = ?, password = ?, phoneNumber = ?, street = ?, city = ? WHERE id = ?";
+          connection.query(
+            sqlStatement,
+            [
+              req.body.firstName,
+              req.body.lastName,
+              req.body.isActive,
+              req.body.emailAdress,
+              req.body.password,
+              req.body.phoneNumber,
+              req.body.street,
+              req.body.city,
+              id,
+            ],
+            (err, results) => {
+              if (err) {
+                console.error("Error executing query:", err);
+                res.status(500).json({
+                  status: 500,
+                  message: "Internal server error",
+                  data: null,
+                });
+                return;
+              }
+              console.log(`User with ID ${id} updated successfully`);
+              res.status(200).json({
+                statusCode: 200,
+                message: "User update endpoint",
+                data: req.body,
+              });
+              connection.release();
+            }
+          );
         }
       );
     });
+
   },
   //UC-206
   deleteUser: (req, res) => {
