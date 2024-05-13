@@ -73,6 +73,6 @@ jobs:
         run: npm i -g @railway/cli
 
       - name: Deploy server to Railway
-        run: railway up
+        run: railway up --service slick-car
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
