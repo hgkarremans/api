@@ -57,7 +57,6 @@ const mealController = {
         "INSERT INTO `meal`(`isActive`, `isVega`, `isVegan`, `isToTakeHome`, `dateTime`, `maxAmountOfParticipants`, `price`, `imageUrl`, `cookId`, `createDate`, `updateDate`, `name`, `description`, `allergenes`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
     const date = new Date().toISOString().slice(0, 19).replace("T", " ");
     const decoded = jwt.verify(req.token, "your-secret-key");
-    console.log(meal.allergenes)
     pool.getConnection(function (err, conn) {
         // Do something with the connection
         if (err) {
@@ -198,7 +197,6 @@ const mealController = {
                 data: results,
               });
             } else {
-              console.log(results);
               res.status(404).json({
                 status: 404,
                 message:
@@ -274,12 +272,19 @@ const mealController = {
               message: err.message,
             });
           }
-          if (results) {
+          if (results && results.length > 0 ) {
             logger.info("Found", results.length, "results");
             res.status(200).json({
               statusCode: 200,
               message: "meal id endpoint",
               data: results,
+            });
+          }
+          else {
+            res.status(404).json({
+              status: 404,
+              message: "No meal with this ID found",
+              data: mealId,
             });
           }
         });
@@ -330,7 +335,6 @@ const mealController = {
                 data: results,
               });
             } else {
-              console.log(results);
               res.status(404).json({
                 status: 404,
                 message:

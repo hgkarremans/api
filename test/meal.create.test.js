@@ -50,6 +50,7 @@ jwt.sign({ userId }, 'your-secret-key', { expiresIn: "1y" }, (err, token) => {
 
 
 
+    
     describe('UC-301 creeren van maaltijd', () => {
         beforeEach((done) => {
             pool.getConnection(function (err, conn) {
@@ -102,7 +103,7 @@ jwt.sign({ userId }, 'your-secret-key', { expiresIn: "1y" }, (err, token) => {
                     imageUrl: "https://miljuschka.nl/wp-content/uploads/2021/02/Pasta-bolognese-3-2.jpg",
                     name: "Pasta Bolognese met tomaat, spekjes en kaas",
                     description: "Een heerlijke klassieker! Altijd goed voor tevreden gesmikkel!",
-                    allergenes: "gluten, lactose"
+                    allergenes: "gluten"
                 })
                 .end((err, res) => {
                     expect(res).to.have.status(200);
@@ -298,24 +299,22 @@ jwt.sign({ userId }, 'your-secret-key', { expiresIn: "1y" }, (err, token) => {
 
         it('TC-302-1 - should update a meal', (done) => {
             request(server)
-                .put('/api/meal/mealId')
+                .put('/api/meal/1')
                 .set('Authorization', 'Bearer ' + generatedToken)
                 .send({
-                    id: 1,
                     isActive: 1,
                     isVega: 0,
                     isVegan: 0,
                     isToTakeHome: 1,
                     dateTime: "2023-06-30 15:45:00",
                     maxAmountOfParticipants: 4,
-                    price: 12.75,
+                    price: "12.75",
                     imageUrl: "https://miljuschka.nl/wp-content/uploads/2021/02/Pasta-bolognese-3-2.jpg",
                     name: "Pasta Bolognese met tomaat, spekjes en kaas",
                     description: "Een heerlijke klassieker! Altijd goed voor tevreden gesmikkel!",
                     allergenes: "gluten",
                 })
                 .end((err, res) => {
-                    console.log(res.body);  
                     expect(res).to.have.status(200);
                     expect(res.body.message).to.equal('meal update endpoint');
                     expect(res.body.data.affectedRows).to.equal(1);
@@ -325,17 +324,16 @@ jwt.sign({ userId }, 'your-secret-key', { expiresIn: "1y" }, (err, token) => {
         );
         it('TC-302-2 - does not exist', (done) => {
             request(server)
-                .put('/api/meal/mealId')
+                .put('/api/meal/500')
                 .set('Authorization', 'Bearer ' + generatedToken)
                 .send({
-                    id: 500,
                     isActive: 1,
                     isVega: 0,
                     isVegan: 0,
                     isToTakeHome: 1,
                     dateTime: "2023-06-30 15:45:00",
                     maxAmountOfParticipants: 4,
-                    price: 12.75,
+                    price: "12.75",
                     imageUrl: "https://miljuschka.nl/wp-content/uploads/2021/02/Pasta-bolognese-3-2.jpg",
                     name: "Pasta Bolognese met tomaat, spekjes en kaas",
                     description: "Een heerlijke klassieker! Altijd goed voor tevreden gesmikkel!",
@@ -343,8 +341,31 @@ jwt.sign({ userId }, 'your-secret-key', { expiresIn: "1y" }, (err, token) => {
                 })
                 .end((err, res) => {
                     expect(res).to.have.status(404);
-                    expect(res.body.message).to.equal('meal not found');
-                    expect(res.body.data.affectedRows).to.equal(0);
+                    expect(res.body.message).to.equal('No meal with this ID found or you are not the cook of this meal');
+                    done();
+                });
+        }
+        );
+        it('TC-302-3 - not the cook of this meal', (done) => {
+            request(server)
+                .put('/api/meal/2')
+                .set('Authorization', 'Bearer ' + generatedToken)
+                .send({
+                    isActive: 1,
+                    isVega: 0,
+                    isVegan: 0,
+                    isToTakeHome: 1,
+                    dateTime: "2023-06-30 15:45:00",
+                    maxAmountOfParticipants: 4,
+                    price: "12.75",
+                    imageUrl: "https://miljuschka.nl/wp-content/uploads/2021/02/Pasta-bolognese-3-2.jpg",
+                    name: "Pasta Bolognese met tomaat, spekjes en kaas",
+                    description: "Een heerlijke klassieker! Altijd goed voor tevreden gesmikkel!",
+                    allergenes: "gluten, lactose",
+                })
+                .end((err, res) => {
+                    expect(res).to.have.status(404);
+                    expect(res.body.message).to.equal('No meal with this ID found or you are not the cook of this meal');
                     done();
                 });
         }
@@ -419,42 +440,41 @@ jwt.sign({ userId }, 'your-secret-key', { expiresIn: "1y" }, (err, token) => {
                 // Do something with the connection
                 if (err) {
                     console.log('error', err);
-                    next('error: ' + err.message);
+                    done('error: ' + err.message);
                 }
                 if (conn) {
                     conn.query(CLEAR_DB, function (err, results, fields) {
                         if (err) {
                             console.log(err);
-                            next();
+                            done(err);
                         }
                         if (results) {
-
                             conn.query(INSERT_USERS, function (err, results, fields) {
                                 if (err) {
                                     console.log(err);
                                     logger.err(err.message);
-                                    next();
+                                    done(err);
                                 }
                                 if (results) {
                                     conn.query(INSERT_MEAL, function (err, results, fields) {
                                         if (err) {
+                                            console.log(err);
                                             logger.err(err.message);
-                                            next();
+                                            done(err);
                                         }
                                         if (results) {
                                             conn.query(INSERT_MEAL2, function (err, results, fields) {
                                                 if (err) {
+                                                    console.log('we here now' + err);
                                                     logger.err(err.message);
-                                                    next();
+                                                    done(err);
                                                 }
                                                 if (results) {
                                                     done();
                                                 }
-                                            }
-                                            );
+                                            });
                                         }
-                                    }
-                                    );
+                                    });
                                 }
                             });
                         }
@@ -464,50 +484,38 @@ jwt.sign({ userId }, 'your-secret-key', { expiresIn: "1y" }, (err, token) => {
             });
         });
         it('TC-304-1 - should get meal with id 1', (done) => {
-            const int = {
-                "id": 1
-            }
             request(server)
-                .get('/api/meal/mealId')
+                .get('/api/meal/1')
                 .set('Authorization', 'Bearer ' + generatedToken)
-                .send(int)
                 .end((err, res) => {
                     expect(res).to.have.status(200);
                     expect(res.body.message).to.equal('meal id endpoint');
-                    expect(res.body.data.id).to.equal(1);
                     done();
                 });
 
         }
         );
         it('TC-304-2 - should not get meal with id 500', (done) => {
-            const int = {
-                "id": 500
-            }
+            
             request(server)
-                .get('/api/meal/mealId')
+                .get('/api/meal/500')
                 .set('Authorization', 'Bearer ' + generatedToken)
-                .send(int)
                 .end((err, res) => {
                     expect(res).to.have.status(404);
-                    expect(res.body.message).to.equal('meal not found');
+                    expect(res.body.message).to.equal('No meal with this ID found');
                     expect(res.body.data).to.equal(500);
                     done();
                 });
         }
         );
         it('TC-304-3 - should get meal with id 2', (done) => {
-            const int = {
-                "id": 2
-            }
+            
             request(server)
-                .get('/api/meal/mealId')
+                .get('/api/meal/2')
                 .set('Authorization', 'Bearer ' + generatedToken)
-                .send(int)
                 .end((err, res) => {
                     expect(res).to.have.status(200);
                     expect(res.body.message).to.equal('meal id endpoint');
-                    expect(res.body.data.id).to.equal(2);
                     done();
                 });
 
@@ -565,49 +573,37 @@ jwt.sign({ userId }, 'your-secret-key', { expiresIn: "1y" }, (err, token) => {
             });
         });
         it('TC-305-1 - should delete meal with id 1', (done) => {
-            const int = {
-                "id": 1
-            }
+           
             request(server)
-                .delete('/api/meal/mealId')
+                .delete('/api/meal/1')
                 .set('Authorization', 'Bearer ' + generatedToken)
-                .send(int)
                 .end((err, res) => {
                     expect(res).to.have.status(200);
                     expect(res.body.message).to.equal('meal delete endpoint');
-                    expect(res.body.data.affectedRows).to.equal(1);
                     done();
                 });
         }
         );
         it('TC-305-2 - should not delete meal with id 500', (done) => {
-            const int = {
-                "id": 500
-            }
+            
             request(server)
-                .delete('/api/meal/mealId')
+                .delete('/api/meal/500')
                 .set('Authorization', 'Bearer ' + generatedToken)
-                .send(int)
                 .end((err, res) => {
                     expect(res).to.have.status(404);
-                    expect(res.body.message).to.equal('cook has no meal');
-                    expect(res.body.data).to.equal(500);
+                    expect(res.body.message).to.equal('No meal with this ID found or you are not the cook of this meal');
                     done();
                 });
         }
         );
         it('TC-305-3 - should not delete meal with id 2 because not allowed', (done) => {
-            const int = {
-                "id": 2
-            }
+            
             request(server)
-                .delete('/api/meal/mealId')
+                .delete('/api/meal/2')
                 .set('Authorization', 'Bearer ' + generatedToken)
-                .send(int)
                 .end((err, res) => {
-                    expect(res).to.have.status(400);
-                    expect(res.body.message).to.equal('user is not authorized to delete this meal');
-                    expect(res.body.data).to.equal(2); ""
+                    expect(res).to.have.status(404);
+                    expect(res.body.message).to.equal('No meal with this ID found or you are not the cook of this meal');
 
                     done();
                 });

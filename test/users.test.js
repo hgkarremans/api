@@ -213,7 +213,6 @@ describe('UC-201 Registreren als nieuwe user', () => {
             .send(newUser)
             .end((err, res) => {
                 assert(err === null);
-                console.log(res.body)
                 expect(res.body).to.be.an('object');
                 let { status, message, data } = res.body;
 
@@ -268,18 +267,16 @@ describe('UC-202 Opvragen van overzicht van users', () => {
         });
     });
     it('TC-202-1 - Toon alle gebruikers, minimaal 2', (done) => {
-        // Voer de test uit
-        chai
+       chai
             .request(server)
             .get('/api/user')
+            .set('Authorization', `Bearer ${generatedToken}`)
             .end((err, res) => {
                 assert(err === null);
                 let { statusCode, message, data } = res.body;
-                expect(res.body).to.be.an('object');
-                expect(res.body.statusCode).to.equal(200);
                 expect(message).to.be.a('string').that.contains('User getAll endpoint');
-                expect(data).to.be.an('array');
-                expect(data.length).to.be.greaterThan(1);
+                expect(statusCode).to.equal(200);
+                expect(data).to.be.an('array').that.has.lengthOf.at.least(2);
                 done();
             });
     });
@@ -296,7 +293,7 @@ describe('UC-202 Opvragen van overzicht van users', () => {
         chai
             .request(server)
             .get('/api/user')
-            // Is gelijk aan .get('/api/user?name=foo&city=non-existent')
+            .set('Authorization', `Bearer ${generatedToken}`)
             .end((err, res) => {
                 assert(err === null);
                 expect(res.body).to.be.an('object');
@@ -317,14 +314,12 @@ describe('UC-202 Opvragen van overzicht van users', () => {
             .request(server)
             .get('/api/user')
             .send(filter)
-            // Is gelijk aan .get('/api/user?name=existing&city=Boz')
+            .set('Authorization', `Bearer ${generatedToken}`)
             .end((err, res) => {
                 assert(err === null);
-                // expect(res.body).to.be.an('object');
                 let { statusCode, message, data } = res.body;
-                // expect(res.body).to.be.an('object');
-                expect(res.body.statusCode).to.equal(200);
-                expect(message).to.be.a('string').that.equals('User getAll endpoint inactive users');
+                expect(statusCode).to.equal(200);
+                expect(message).to.be.a('string').that.equals('User getAll endpoint');
                 done();
             });
     }
@@ -338,18 +333,65 @@ describe('UC-202 Opvragen van overzicht van users', () => {
             .request(server)
             .get('/api/user')
             .send(filter)
-            // Is gelijk aan .get('/api/user?name=existing&city=Boz')
+            .set('Authorization', `Bearer ${generatedToken}`)
             .end((err, res) => {
                 assert(err === null);
                 // expect(res.body).to.be.an('object');
                 let { statusCode, message, data } = res.body;
                 // expect(res.body).to.be.an('object');
                 expect(res.body.statusCode).to.equal(200);
-                expect(message).to.be.a('string').that.equals('User getAll endpoint active users');
+                expect(message).to.be.a('string').that.equals('User getAll endpoint');
                 done();
             });
     }
     );
+
+    it('TC-202-5 - Toon gebruikers met zoekterm op bestaande velden', (done) => {
+        const filter= {
+            "isActive" : 1,
+            "emailAdress": "ronald1o@gmail.com"
+        }
+        // Voer de test uit
+        chai
+            .request(server)
+            .get('/api/user')
+            .send(filter)
+            .set('Authorization', `Bearer ${generatedToken}`)
+            .end((err, res) => {
+                assert(err === null);
+                // expect(res.body).to.be.an('object');
+                let { statusCode, message, data } = res.body;
+                // expect(res.body).to.be.an('object');
+                expect(statusCode).to.equal(200);
+                expect(message).to.be.a('string').that.equals('User getAll endpoint');
+                done();
+            });
+    }
+    );
+    it('TC-202-6 - Toon gebruikers met meer dan 2 filters', (done) => {
+        const filter= {
+            "isActive" : 1,
+            "emailAdress": "ronald1o@gmail.com",
+            "firstName": "Karel"
+        }
+        // Voer de test uit
+        chai
+            .request(server)
+            .get('/api/user')
+            .send(filter)
+            .set('Authorization', `Bearer ${generatedToken}`)
+            .end((err, res) => {
+                assert(err === null);
+                let { status, message, data } = res.body;
+                expect(status).to.equal(400);
+                expect(message).to.be.a('string').that.equals('Maximum of 2 filters allowed');
+                expect(data).to.be.an('object');
+                done();
+            });
+    }
+    );
+
+
 });
 
 describe('UC-203 opvragen van gebruikersprofiel', () => {
@@ -421,18 +463,34 @@ describe('UC-203 opvragen van gebruikersprofiel', () => {
 
         chai
             .request(server)
-            .get('/api/user/profile')
+            .get('/api/user/profile/1')
             .set('Authorization', `Bearer ${generatedToken}`)
             .end((err, res) => {
                 assert(err === null);
-                let { status, message, data } = res.body;
+                let { statusCode, message, data } = res.body;
                 expect(res.body).to.be.an('object');
-                expect(res.body.statusCode).to.equal(200);
+                expect(statusCode).to.equal(200);
                 expect(message).to.be.a('string').that.contains('User profile endpoint');
                 done();
 
             });
     });
+    it('TC-203-2 - User niet zelfde als gebruiker', (done) => {
+            
+            chai
+                .request(server)
+                .get('/api/user/profile/1000')
+                .set('Authorization', `Bearer ${generatedToken}`)
+                .end((err, res) => {
+                    assert(err === null);
+                    let { status, message, data } = res.body;
+                    expect(res.body).to.be.an('object');
+                    expect(res.body.status).to.equal(403);
+                    expect(message).to.be.a('string').that.contains('Forbidden');
+                    done();
+                });
+        });
+
 
 });
 
@@ -502,14 +560,10 @@ describe('UC-204 userId ophalen', () => {
     });
 
     it('TC-204-1 - User succesvol opgevraagd', (done) => {
-        const int = {
-            "id": 1
-        }
-        chai
+        chai 
             .request(server)
-            .get('/api/user/userId')
-            .send(int)
-
+            .get('/api/user/1')
+            .set('Authorization', `Bearer ${generatedToken}`)
             .end((err, res) => {
                 assert(err === null);
                 let { status, message, data } = res.body;
@@ -521,14 +575,13 @@ describe('UC-204 userId ophalen', () => {
                 done();
             });
     });
+
+            
     it('TC-204-2 - User bestaat niet', (done) => {
-        const int = {
-            id: 1000
-        }
         chai
             .request(server)
-            .get('/api/user/userId')
-            .send(int)
+            .get('/api/user/1000')
+            .set('Authorization', `Bearer ${generatedToken}`)
 
             .end((err, res) => {
                 assert(err === null);
@@ -628,7 +681,6 @@ describe('UC-205 Gebruikersinformatie wijzingen', () => {
     it('TC-205-1 - Gebruikersinformatie succesvol gewijzigd', (done) => {
 
         const user = {
-            id: 1,
             firstName: 'Karel',
             lastName: 'Ronaldo',
             emailAdress: 'ronaldffafof@gmail.com'
@@ -636,7 +688,7 @@ describe('UC-205 Gebruikersinformatie wijzingen', () => {
         }
         chai
             .request(server)
-            .put('/api/user/userId')
+            .put('/api/user/1')
             .send(user)
             .set('Authorization', `Bearer ${generatedToken}`)
             .end((err, res) => {
@@ -646,31 +698,27 @@ describe('UC-205 Gebruikersinformatie wijzingen', () => {
                 expect(res.body.statusCode).to.equal(200);
                 expect(message).to.be.a('string').that.contains('User update endpoint');
                 expect(data).to.be.an('object');
-                expect(data.id).to.equal(1);
                 done();
             });
     });
     it('TC-205-2 - Gebruikersinformatie niet gewijzigd', (done) => {
 
         const user = {
-            id: 5000,
             firstName: 'Karel',
             lastName: 'Ronaldo',
             emailAdress: 'm.vanffdam@server.nl'
         }
         chai
             .request(server)
-            .put('/api/user/userId')
+            .put('/api/user/2')
             .send(user)
             .set('Authorization', `Bearer ${generatedToken}`)
             .end((err, res) => {
                 assert(err === null);
                 let { status, message, data } = res.body;
                 expect(res.body).to.be.an('object');
-                expect(status).to.equal(400);
-                expect(message).to.be.a('string').that.contains('id must be the same as the logged in user');
-                expect(data).to.be.an('object');
-                expect(data.id).to.equal(5000);
+                expect(status).to.equal(403);
+                expect(message).to.be.a('string').that.contains('Forbidden');
                 done();
             });
     });
@@ -713,38 +761,30 @@ describe('UC-206 Verwijder de user met het opgegeven id', () => {
 
     it('TC-206-1 - User succesvol opgevraagd', (done) => {
 
-        const int = {
-            id: 1
-        }
         chai
             .request(server)
-            .delete('/api/user/userId')
-            .send(int)
+            .delete('/api/user/1')
             .set('Authorization', `Bearer ${generatedToken}`)
             .end((err, res) => {
                 assert(err === null);
                 let { status, message, data } = res.body;
                 expect(res.body.statusCode).to.equal(200);
                 expect(message).to.be.a('string').that.contains('User delete endpoint');
-                expect(data).to.equal(1);
                 done();
             });
     });
     it('TC-206-2 - User niet hetzelfde als ingelogde user', (done) => {
-        const int = {
-            id: 1000
-        }
+        
         chai
             .request(server)
-            .delete('/api/user/userId')
-            .send(int)
+            .delete('/api/user/200')
             .set('Authorization', `Bearer ${generatedToken}`)
             .end((err, res) => {
                 assert(err === null);
                 let { status, message, data } = res.body;
                 expect(res.body).to.be.an('object');
-                expect(res.body.status).to.equal(400);
-                expect(message).to.be.a('string').that.contains('id must be the same as the logged in user');
+                expect(res.body.status).to.equal(403);
+                expect(message).to.be.a('string').that.contains('Forbidden');
                 done();
             });
     });

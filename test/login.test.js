@@ -120,7 +120,6 @@ describe('UC-101 inloggen', () => {
             .post('/api/login')
             .send(user)
             .end((err, res) => {
-                console.log(res.body);
                 expect(res).to.have.status(200);
                 expect(res.body.message).to.equal('User login endpoint');
                 expect(res.body.data).to.be.a('string');
