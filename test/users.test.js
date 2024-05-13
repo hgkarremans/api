@@ -687,7 +687,9 @@ describe('UC-205 Gebruikersinformatie wijzingen', () => {
             emailAdress: 'ronaldffafof@gmail.com',
             isActive: 1,
             password: 'secret',
-            street: 'meilustweg'
+            street: 'meilustweg',
+            phoneNumber: '0618128342',
+            city: 'BOZ'
             
 
         }
@@ -714,7 +716,10 @@ describe('UC-205 Gebruikersinformatie wijzingen', () => {
             emailAdress: 'm.vanffdam@server.nl',
             isActive: 1,
             password: 'secret',
-            street: 'meilustweg'
+            street: 'meilustweg',
+            phoneNumber: '0618128342',
+            city: 'BOZ'
+            
         }
         chai
             .request(server)
