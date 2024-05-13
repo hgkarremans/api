@@ -121,169 +121,74 @@ const userController = {
 
   //uc-202
   getAllUsers: (req, res, next) => {
-    const validFilters = ['firstName', 'lastName', 'street', 'city', 'isActive', 'emailAdress'];
-    const {...filters} = req.body;
+    const validFilters = [
+      "firstName",
+      "lastName",
+      "street",
+      "city",
+      "isActive",
+      "emailAdress",
+    ];
+    const { ...filters } = req.body;
 
-    // Check if the number of filters exceeds the limit
     if (Object.keys(filters).length > 2) {
-        res.status(400).json({
-            status: 400,
-            message: "Maximum of 2 filters allowed",
-            data: filters,
-        });
-        return;
+      res.status(400).json({
+        status: 400,
+        message: "Maximum of 2 filters allowed",
+        data: filters,
+      });
+      return;
     }
 
     let sqlStatement = "SELECT * FROM user";
 
-    // Check if any filters are provided
     if (Object.keys(filters).length > 0) {
-        const validFiltersKeys = Object.keys(filters).filter(key => validFilters.includes(key));
-        if (validFiltersKeys.length > 0) {
-            const whereClause = validFiltersKeys.map(key => `${key} = ?`).join(' AND ');
-            sqlStatement += ` WHERE ${whereClause}`;
-        } else {
-            res.status(400).json({
-                status: 400,
-                message: "Invalid filter keys",
-                data: filters,
-            });
-            return;
-        }
+      const validFiltersKeys = Object.keys(filters).filter((key) =>
+        validFilters.includes(key)
+      );
+      if (validFiltersKeys.length > 0) {
+        const whereClause = validFiltersKeys
+          .map((key) => `${key} = ?`)
+          .join(" AND ");
+        sqlStatement += ` WHERE ${whereClause}`;
+      } else {
+        res.status(400).json({
+          status: 400,
+          message: "Invalid filter keys",
+          data: filters,
+        });
+        return;
+      }
     }
 
     pool.getConnection((err, connection) => {
-        if (err) {
-            console.error("Error getting database connection:", err);
-            res.status(500).json({
-                status: 500,
-                message: "Internal server error",
-                data: null,
-            });
-            return;
-        }
-        connection.query(sqlStatement, Object.values(filters), (err, results) => {
-            connection.release();
-            if (err) {
-                console.error("Error executing query:", err);
-                res.status(500).json({
-                    status: 500,
-                    message: "Internal server error",
-                    data: null,
-                });
-                return;
-            }
-            res.status(200).json({
-                statusCode: 200,
-                message: "User getAll endpoint",
-                data: results,
-            });
+      if (err) {
+        console.error("Error getting database connection:", err);
+        res.status(500).json({
+          status: 500,
+          message: "Internal server error",
+          data: null,
         });
+        return;
+      }
+      connection.query(sqlStatement, Object.values(filters), (err, results) => {
+        connection.release();
+        if (err) {
+          console.error("Error executing query:", err);
+          res.status(500).json({
+            status: 500,
+            message: "Internal server error",
+            data: null,
+          });
+          return;
+        }
+        res.status(200).json({
+          statusCode: 200,
+          message: "User getAll endpoint",
+          data: results,
+        });
+      });
     });
-
-
-    
-    
-
-
-
-
-
-
-    // if (req.body.isActive == 0) {
-    //   let sqlStatement = "SELECT * FROM `user` WHERE isActive = 0";
-    //   // Hier wil je misschien iets doen met mogelijke filterwaarden waarop je zoekt.
-
-    //   pool.getConnection(function (err, conn) {
-    //     // Do something with the connection
-    //     if (err) {
-    //       console.log("error", err);
-    //       next("error: " + err.message);
-    //     }
-    //     if (conn) {
-    //       conn.query(sqlStatement, function (err, results, fields) {
-    //         if (err) {
-    //           logger.err(err.message);
-    //           next({
-    //             code: 409,
-    //             message: err.message,
-    //           });
-    //         }
-    //         if (results) {
-    //           // logger.info('Found', results.length, 'results');
-    //           res.status(200).json({
-    //             statusCode: 200,
-    //             message: "User getAll endpoint inactive users",
-    //             data: results,
-    //           });
-    //         }
-    //       });
-    //       pool.releaseConnection(conn);
-    //     }
-    //   });
-    // } else if (req.body.isActive == 1) {
-    //   let sqlStatement = "SELECT * FROM `user` WHERE isActive = 1";
-    //   // Hier wil je misschien iets doen met mogelijke filterwaarden waarop je zoekt.
-
-    //   pool.getConnection(function (err, conn) {
-    //     // Do something with the connection
-    //     if (err) {
-    //       console.log("error", err);
-    //       next("error: " + err.message);
-    //     }
-    //     if (conn) {
-    //       conn.query(sqlStatement, function (err, results, fields) {
-    //         if (err) {
-    //           logger.err(err.message);
-    //           next({
-    //             code: 409,
-    //             message: err.message,
-    //           });
-    //         }
-    //         if (results) {
-    //           // logger.info('Found', results.length, 'results');
-    //           res.status(200).json({
-    //             statusCode: 200,
-    //             message: "User getAll endpoint active users",
-    //             data: results,
-    //           });
-    //         }
-    //       });
-    //       pool.releaseConnection(conn);
-    //     }
-    //   });
-    // } else {
-    //   let sqlStatement = "SELECT * FROM `user`";
-    //   // Hier wil je misschien iets doen met mogelijke filterwaarden waarop je zoekt.
-
-    //   pool.getConnection(function (err, conn) {
-    //     // Do something with the connection
-    //     if (err) {
-    //       console.log("error", err);
-    //       next("error: " + err.message);
-    //     }
-    //     if (conn) {
-    //       conn.query(sqlStatement, function (err, results, fields) {
-    //         if (err) {
-    //           logger.err(err.message);
-    //           next({
-    //             code: 409,
-    //             message: err.message,
-    //           });
-    //         }
-    //         if (results) {
-    //           // logger.info('Found', results.length, 'results');
-    //           res.status(200).json({
-    //             statusCode: 200,
-    //             message: "User getAll endpoint",
-    //             data: results,
-    //           });
-    //         }
-    //       });
-    //       pool.releaseConnection(conn);
-    //     }
-    //   });
-    // }
   },
 
   //uc 203
@@ -335,7 +240,7 @@ const userController = {
 
   //UC-204
   getUserWithId: (req, res) => {
-    const id = parseInt(req.params.id); 
+    const id = parseInt(req.params.id);
     console.log(id);
 
     if (isNaN(id)) {
@@ -343,11 +248,11 @@ const userController = {
       res.status(400).json({
         status: 400,
         message: "id must be a number",
-        data: req.params.id, 
+        data: req.params.id,
       });
       return;
     }
-    
+
     const checkUserSql = "SELECT * FROM user WHERE id = ?";
     pool.getConnection((err, connection) => {
       if (err) throw err;
@@ -373,26 +278,23 @@ const userController = {
         }
       });
     });
-
   },
   //UC-205
   updateUser: (req, res) => {
-    const id = parseInt(req.params.id); 
+    const id = parseInt(req.params.id);
     console.log(id);
 
     try {
-      assert (typeof emailAdress ==="string", "emailAdress must be a string")
-      assert (typeof phoneNumber ==="string", "phoneNumber must be a string")
-    } catch (error) {
-      
-    }
+      assert(typeof emailAdress === "string", "emailAdress must be a string");
+      assert(typeof phoneNumber === "string", "phoneNumber must be a string");
+    } catch (error) {}
 
     if (isNaN(id)) {
       // Check if the conversion was successful
       res.status(400).json({
         status: 400,
         message: "id must be a number",
-        data: req.params.id, 
+        data: req.params.id,
       });
       return;
     }
@@ -405,26 +307,40 @@ const userController = {
       });
       return;
     }
-    
 
-    const sqlStatement = "Update user set firstName = ?, lastName = ?, isActive = ?, emailAdress = ?, password = ?, phoneNumber = ?, street = ?, city = ? where id = ?";
+    const sqlStatement =
+      "Update user set firstName = ?, lastName = ?, isActive = ?, emailAdress = ?, password = ?, phoneNumber = ?, street = ?, city = ? where id = ?";
     pool.getConnection((err, connection) => {
       if (err) throw err;
-      connection.query(sqlStatement, [req.body.firstName, req.body.lastName, req.body.isActive, req.body.emailAdress, req.body.password, req.body.phoneNumber, req.body.street, req.body.city, id], (err, results) => {
-        if (err) throw err;
-        console.log(`User with ID ${id} updated successfully`);
-        res.status(200).json({
-          statusCode: 200,
-          message: "User update endpoint",
-          data: req.body,
-        });
-        connection.release();
-      });
+      connection.query(
+        sqlStatement,
+        [
+          req.body.firstName,
+          req.body.lastName,
+          req.body.isActive,
+          req.body.emailAdress,
+          req.body.password,
+          req.body.phoneNumber,
+          req.body.street,
+          req.body.city,
+          id,
+        ],
+        (err, results) => {
+          if (err) throw err;
+          console.log(`User with ID ${id} updated successfully`);
+          res.status(200).json({
+            statusCode: 200,
+            message: "User update endpoint",
+            data: req.body,
+          });
+          connection.release();
+        }
+      );
     });
   },
   //UC-206
   deleteUser: (req, res) => {
-    const id = parseInt(req.params.id); 
+    const id = parseInt(req.params.id);
     console.log(id);
 
     if (isNaN(id)) {
@@ -432,7 +348,7 @@ const userController = {
       res.status(400).json({
         status: 400,
         message: "id must be a number",
-        data: req.params.id, 
+        data: req.params.id,
       });
       return;
     }
